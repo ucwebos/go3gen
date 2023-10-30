@@ -99,12 +99,45 @@ func (a *App) _microFunIO(items []tpls.MicroFunItem) {
 		AppPkgPath: a.appPkgPath(),
 		FunList:    items,
 	}
-	buf, err := tpl.Execute()
+	var (
+		filename = path.Join(a.Path, "types_"+a.Name, "types.go")
+		buf      []byte
+		err      error
+	)
+
+	ipr, err := parser.Scan(path.Join(a.Path, "types_"+a.Name), parser.ParseTypeWatch)
 	if err != nil {
-		log.Printf("gen MicroTypes %s err: %v \n", a.Name, err)
-		return
+		log.Fatal(err)
 	}
-	filename := path.Join(a.Path, "types_"+a.Name, "types.go")
+	if tool_file.Exists(filename) {
+		_buf, err := os.ReadFile(filename)
+		if err != nil {
+			log.Fatal(err)
+		}
+		tpl := tpls.MicroTypesAppend{
+			Body:    _buf,
+			FunList: make([]tpls.MicroFunItem, 0),
+		}
+		for _, it := range items {
+			if _, ok := ipr.StructList[it.ReqName]; !ok {
+				tpl.FunList = append(tpl.FunList, it)
+			}
+		}
+		if len(tpl.FunList) > 0 {
+			buf, err = tpl.Execute()
+			if err != nil {
+				log.Fatal(err)
+			}
+			log.Printf("append micro-types file %s \n", filename)
+		}
+
+	} else {
+		buf, err = tpl.Execute()
+		if err != nil {
+			log.Printf("gen MicroTypes %s err: %v \n", a.Name, err)
+			return
+		}
+	}
 	buf = a.format(buf, filename)
 	_ = tool_file.WriteFile(filename, buf)
 	log.Printf("gen micro-types file %s \n", filename)
