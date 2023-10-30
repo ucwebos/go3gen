@@ -1,6 +1,6 @@
 module github.com/ucwebos/go3gen
 
-go 1.21.0
+go 1.20
 
 require (
 	github.com/go-sql-driver/mysql v1.7.1
