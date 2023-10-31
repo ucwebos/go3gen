@@ -252,7 +252,7 @@ func (a *App) CRepos() {
 var (
 	handlerFunExp    = regexp.MustCompile(`(.+)\s+\[(\w+)]`)
 	handlerGroupExp  = regexp.MustCompile(`#(\S+)\s+(\w+)`)
-	handlerMiddleExp = regexp.MustCompile(`@M\(([\w|,]+)\)`)
+	handlerMiddleExp = regexp.MustCompile(`@M\(([\w|,|\(|\)]+)\)`)
 )
 
 func (a *App) BizEntryDocParse(entryName string, doc string) []*tpls.EntryGroup {
@@ -262,14 +262,14 @@ func (a *App) BizEntryDocParse(entryName string, doc string) []*tpls.EntryGroup 
 		rg := handlerGroupExp.FindStringSubmatch(line)
 		if len(rg) == 3 {
 			group := &tpls.EntryGroup{
-				Group:       rg[2],
-				GroupName:   rg[1],
-				FunList:     make([]tpls.EntryFunItem, 0),
-				Middlewares: make([]string, 0),
+				Group:        rg[2],
+				GroupName:    rg[1],
+				FunList:      make([]tpls.EntryFunItem, 0),
+				GMiddlewares: make([]string, 0),
 			}
 			rm := handlerMiddleExp.FindStringSubmatch(line)
 			if len(rm) == 2 {
-				group.Middlewares = strings.Split(rm[1], ",")
+				group.GMiddlewares = strings.Split(rm[1], ",")
 			}
 			groups = append(groups, group)
 			continue
@@ -294,6 +294,22 @@ func (a *App) BizEntryDocParse(entryName string, doc string) []*tpls.EntryGroup 
 			rm := handlerMiddleExp.FindStringSubmatch(line)
 			if len(rm) == 2 {
 				item.Middlewares = strings.Split(rm[1], ",")
+				if len(group.GMiddlewares) > 0 {
+					middlewareMap := map[string]struct{}{}
+					middlewares := make([]string, 0)
+					for _, middleware := range group.GMiddlewares {
+						middlewareMap[middleware] = struct{}{}
+						middlewares = append(middlewares, middleware)
+					}
+					for _, middleware := range item.Middlewares {
+						if _, ok := middlewareMap[middleware]; !ok {
+							middlewares = append(middlewares, middleware)
+						}
+					}
+					item.Middlewares = middlewares
+				}
+			} else {
+				item.Middlewares = group.GMiddlewares
 			}
 			group.FunList = append(group.FunList, item)
 		}

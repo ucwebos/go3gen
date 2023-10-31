@@ -21,6 +21,7 @@ import (
 
 
 	"{{.AppPkgPath}}/cmd/{{.EntryName}}/handler"
+	"{{.AppPkgPath}}/cmd/{{.EntryName}}/middleware"
 	"{{.AppPkgPath}}/cmd/{{.EntryName}}/types"
 )
 
@@ -28,14 +29,14 @@ func generated(r *gin.Engine) {
 
 	{{- range .Groups}}
 	// ----------------------------------- {{.GroupName}} -----------------------------------
-	{{- range .FunList}}
+	{{- range $it := .FunList}}
 	// {{.FunMark}}
-	r.POST("{{.URI}}", func(ctx *gin.Context) {
+	r.POST("{{.URI}}"{{with $it.Middlewares}},{{range $it.Middlewares}}middleware.{{.}}{{end}}{{end}}, func(ctx *gin.Context) {
 		var (
 			st = time.Now()
 			_ctx = common.HTTPMetadata(ctx)
-			req = &types.{{.ReqName}}{}
-			resp = &types.{{.RespName}}{}
+			req = &types.{{$it.ReqName}}{}
+			resp = &types.{{$it.RespName}}{}
 			err error
 		)
 		reqRaw,raw,_common, err := reqJSON(ctx)
@@ -46,12 +47,12 @@ func generated(r *gin.Engine) {
 		if _common != nil {
 			_ctx = context.WithValue(_ctx,"__COMMON__",_common)
 		}
-		_ctx, span := tracing.StartSpan(_ctx, "http:{{.URI}}")
+		_ctx, span := tracing.StartSpan(_ctx, "http:{{$it.URI}}")
 		defer func() {
 			span.End()
 			prometheus.HistogramVec.Timing("http_seconds", map[string]string{
 				"entry":  "{{$.EntryName}}",
-				"api":    "{{.URI}}",
+				"api":    "{{$it.URI}}",
 				"ret":    prometheus.RetLabel(err),
 			}, st)
 			log.With().TraceID(_ctx).Field("req", raw).Field("resp", resp).Field("err", err).Info("on-http")
@@ -60,7 +61,7 @@ func generated(r *gin.Engine) {
 			JSONError(ctx, common.ErrParams)
 			return
 		}
-		resp, err = handler.{{.FunName}}(_ctx, req)
+		resp, err = handler.{{$it.FunName}}(_ctx, req)
 		JSON(ctx, resp, err)
 	})
 	{{- end}}
@@ -80,10 +81,10 @@ type HttpEntry struct {
 }
 
 type EntryGroup struct {
-	Group       string
-	GroupName   string
-	Middlewares []string
-	FunList     []EntryFunItem
+	Group        string
+	GroupName    string
+	GMiddlewares []string
+	FunList      []EntryFunItem
 }
 
 type EntryFunItem struct {
