@@ -19,15 +19,21 @@ var (
 	{{- end}}
 )
 
-{{- range .List}}
-func {{.Name}}Instance() *{{.Name}} {
+func _once() {
 	once.Do(func() {
+{{- range .List}}
 	  	{{- if ne .NewReturnsLen 0}}
 			_{{.NameVal}}Instance = New{{.Name}}()
 		{{- else}}
 			_{{.NameVal}}Instance = &{{.Name}}{}
 		{{- end}}
+{{- end}}
 	 })
+}
+
+{{- range .List}}
+func {{.Name}}Instance() *{{.Name}} {
+	_once()
 	return _{{.NameVal}}Instance
 }
 {{- end}}
