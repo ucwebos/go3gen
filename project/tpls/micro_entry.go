@@ -73,7 +73,7 @@ func (s *{{$.AppNameUF}}){{.FunName}}(ctx context.Context, input *types_{{$.AppN
 		log.With().TraceID(ctx).Field("req", input).Field("resp", resp).Field("err", err).Info("on-micro")
 	}()
 	
-	resp, err = service.{{.Service}}Instance.{{.Method}}(ctx,input)
+	resp, err = service.{{.Service}}Instance().{{.Method}}(ctx,input)
 	return resp, err
 }	
 
