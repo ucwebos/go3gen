@@ -22,7 +22,7 @@ func Test{{.Service}}_{{.Method}}(t *testing.T) {
 
 	ctx := context.Background()
 	//ctx = context.WithValue(ctx, common.UIDKey, int64(1))
-	resp, err := {{.Service}}Instance.{{.Method}}(ctx, &types_{{$.AppName}}.{{.ReqName}}{
+	resp, err := {{.Service}}Instance().{{.Method}}(ctx, &types_{{$.AppName}}.{{.ReqName}}{
 		// ...
 	})
 	if err != nil {

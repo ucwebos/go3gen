@@ -12,9 +12,9 @@ var (
 	once sync.Once
 	{{- range .List}}
 		{{- if ne .NewReturnsLen 0}}
-			_{{.NameVal}}Instance = New{{.Name}}()
+			_{{.NameVal}}Instance *{{.Name}}
 		{{- else}}
-			_{{.NameVal}}Instance = &{{.Name}}{}
+			_{{.NameVal}}Instance *{{.Name}}
 		{{- end}}
 	{{- end}}
 )
