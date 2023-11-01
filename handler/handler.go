@@ -10,6 +10,7 @@ import (
 	"github.com/xbitgo/core/tools/tool_file"
 	"github.com/xbitgo/core/tools/tool_str"
 	"go/format"
+	"gopkg.in/yaml.v3"
 	"log"
 	"os"
 	"path"
@@ -83,6 +84,40 @@ func generate(cmd *cobra.Command, args []string) {
 
 func sql(cmd *cobra.Command, args []string) {
 	_project()
+	var (
+		dbSet = cfg.DBSet{}
+	)
+	buf, _ := os.ReadFile(cfg.C.RootPath + "/.go3gen.yaml")
+	err := yaml.Unmarshal(buf, &dbSet)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, app := range _scanBusiness() {
+		fmt.Println(app.Name)
+		dsn, ok := dbSet.DBMaps[app.Name]
+		if !ok {
+			dsn = dbSet.DB
+		}
+		if dsn == "" {
+			log.Fatalf("db not set!")
+			return
+		}
+		app.GenSql(dsn)
+	}
+
+	for _, app := range _scanMicros() {
+		fmt.Println("micro:", app.Name)
+		dsn, ok := dbSet.DBMaps[app.Name]
+		if !ok {
+			dsn = dbSet.DB
+		}
+		if dsn == "" {
+			log.Fatalf("db not set!")
+			return
+		}
+		app.GenSql(dsn)
+	}
 }
 
 func _project() {

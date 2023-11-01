@@ -9,6 +9,7 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/xbitgo/core v0.0.0-20221128141250-0b46f60f4973
 	golang.org/x/tools v0.13.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
