@@ -194,10 +194,8 @@ func (a *App) eTypes(xstList []parser.XST) {
 		}
 		// business
 		var (
-			bufd = a.GenFileHeaderAllowEdit("types", []string{
-				"time",
-			})
-			bufc = a.GenFileHeader("converter", []string{
+			xstMaps = map[string][]parser.XST{}
+			bufc    = a.GenFileHeader("converter", []string{
 				fmt.Sprintf("%s/common/tools", cfg.C.Project),
 				fmt.Sprintf("%s/common/core/log", cfg.C.Project),
 				fmt.Sprintf("%s/common/tools/tool_time", cfg.C.Project),
@@ -206,22 +204,37 @@ func (a *App) eTypes(xstList []parser.XST) {
 			})
 		)
 		for _, xst := range xstList {
-			_b, _bc, err := a._types(xst, "json")
-			if err != nil {
-				log.Fatal(err)
+			if _, ok := xstMaps[xst.File]; !ok {
+				xstMaps[xst.File] = make([]parser.XST, 0)
 			}
-			bufd = append(bufd, _b...)
-			bufc = append(bufc, _bc...)
+			xstMaps[xst.File] = append(xstMaps[xst.File], xst)
 		}
-		filename := path.Join(tf.Entry, "types", "entity_types.go")
-		bufd = a.format(bufd, filename)
-		err = tool_file.WriteFile(filename, bufd)
-		if err != nil {
-			log.Printf("types gen [%s] write file err: %v \n", filename, err)
-		}
-		log.Printf("gen types file %s \n", filename)
 
-		filename = path.Join(tf.Entry, "converter", "entity_converter_gen.go")
+		for _file, xstList := range xstMaps {
+			var (
+				_, _fname = path.Split(_file)
+				bufd      = a.GenFileHeaderAllowEdit("types", []string{
+					"time",
+				})
+			)
+			for _, xst := range xstList {
+
+				_b, _bc, err := a._types(xst, "json")
+				if err != nil {
+					log.Fatal(err)
+				}
+				bufd = append(bufd, _b...)
+				bufc = append(bufc, _bc...)
+			}
+			filename := path.Join(tf.Entry, "types", fmt.Sprintf("entity_%s", _fname))
+			bufd = a.format(bufd, filename)
+			err = tool_file.WriteFile(filename, bufd)
+			if err != nil {
+				log.Printf("types gen [%s] write file err: %v \n", filename, err)
+			}
+			log.Printf("gen types file %s \n", filename)
+		}
+		filename := path.Join(tf.Entry, "converter", "entity_converter_gen.go")
 		bufc = a.format(bufc, filename)
 		err = tool_file.WriteFile(filename, bufc)
 		if err != nil {
