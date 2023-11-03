@@ -24,7 +24,7 @@ func (a *App) _gi(iParser *parser.IParser) {
 		Pkg:  iParser.Package,
 		List: make([]tpls.GItem, 0),
 	}
-	for _, xst := range iParser.StructList {
+	for _, xst := range iParser.GetStructList() {
 		if xst.GI {
 			it := tpls.GItem{
 				Name:    xst.Name,

@@ -18,12 +18,10 @@ func (a *App) GenSql(dsn string) {
 		db    = utils.GetDB(dsn)
 		doDir = path.Join(a.Path, "repo", "dbal", "do")
 	)
-	fmt.Println(dsn)
 	ipr, err := parser.Scan(doDir, parser.ParseTypeDo)
 	if err != nil {
 		log.Fatalf("genSql: parse dir[%s], err: %v", doDir, err)
 	}
-	fmt.Println(doDir)
 	for s, xst := range ipr.StructList {
 		if v, ok := ipr.ConstStrList["TableName"+s]; ok {
 			err = a.createTableSQL(db, v, xst)

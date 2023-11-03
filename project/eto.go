@@ -8,6 +8,7 @@ import (
 	"github.com/xbitgo/core/tools/tool_file"
 	"github.com/xbitgo/core/tools/tool_str"
 	"log"
+	"os"
 	"path"
 	"sort"
 	"strings"
@@ -35,8 +36,6 @@ func (a *App) ETO() {
 	a.doNext()
 	// 生成初始types及converter
 	a.eTypes(xstList)
-	// 根据types生成相关
-	a.typesNext()
 }
 
 func (a *App) eTypeDef(xstList []parser.XST) {
@@ -133,42 +132,49 @@ func (a *App) doNext() {
 	log.Printf("gen dao file %s \n", filename)
 }
 
-func (a *App) eTypes(xstList []parser.XST) {
-	if a.Type != TypeAPI {
-		return
+func (a *App) modulesTypes(tf typesGenFile) {
+	// 模块注册模式 显性控制需要引入的模块
+	// 读取micro配置
+	usedMods := make(map[string]struct{})
+	mainDoc, err := parser.MainFunDoc(path.Join(tf.Entry, "main.go"))
+	if err == nil && mainDoc != "" {
+		list := a.MicroParse(mainDoc)
+		for _, s := range list {
+			usedMods[s] = struct{}{}
+		}
 	}
-	// todo 模块注册模式 显性控制需要引入的模块
-	for _, tf := range a.typesGenFiles() {
-		if !tool_file.Exists(path.Join(tf.Entry, "types")) || !tool_file.Exists(path.Join(tf.Entry, "converter")) {
+	// module下的实体
+	for _, module := range modules {
+		if _, ok := usedMods[module.Name]; !ok {
 			continue
 		}
-		// 读取micro配置
-		usedMods := make(map[string]struct{})
-		mainDoc, err := parser.MainFunDoc(path.Join(tf.Entry, "main.go"))
-		if err == nil && mainDoc != "" {
-			list := a.MicroParse(mainDoc)
-			for _, s := range list {
-				usedMods[s] = struct{}{}
+		var (
+			xstMaps = map[string][]parser.XST{}
+
+			bufc = a.GenFileHeaderWithAsName("converter", []string{
+				fmt.Sprintf("%s/common/tools", cfg.C.Project),
+				fmt.Sprintf("%s/common/core/log", cfg.C.Project),
+				fmt.Sprintf("%s/common/tools/tool_time", cfg.C.Project),
+				fmt.Sprintf("%s/entity", module.PkgPath),
+			}, map[string]string{
+				"types": fmt.Sprintf("%s/types/%s", tf.EntryPkgPath, "micro_"+module.Name),
+			})
+		)
+		for _, xst := range module.XSTList {
+			if _, ok := xstMaps[xst.File]; !ok {
+				xstMaps[xst.File] = make([]parser.XST, 0)
 			}
+			xstMaps[xst.File] = append(xstMaps[xst.File], xst)
 		}
-		// module下的实体
-		for _, module := range modules {
-			if _, ok := usedMods[module.Name]; !ok {
-				continue
-			}
+
+		for _file, xstList := range xstMaps {
 			var (
-				bufd = a.GenFileHeaderAllowEdit("types", []string{
+				_, _fname = path.Split(_file)
+				bufd      = a.GenFileHeaderAllowEdit("micro_"+module.Name, []string{
 					"time",
 				})
-				bufc = a.GenFileHeader("converter", []string{
-					fmt.Sprintf("%s/common/tools", cfg.C.Project),
-					fmt.Sprintf("%s/common/core/log", cfg.C.Project),
-					fmt.Sprintf("%s/common/tools/tool_time", cfg.C.Project),
-					fmt.Sprintf("%s/entity", module.PkgPath),
-					fmt.Sprintf("%s/types", tf.EntryPkgPath),
-				})
 			)
-			for _, xst := range module.XSTList {
+			for _, xst := range xstList {
 				_b, _bc, err := a._types(xst, "json")
 				if err != nil {
 					log.Fatal(err)
@@ -176,22 +182,37 @@ func (a *App) eTypes(xstList []parser.XST) {
 				bufd = append(bufd, _b...)
 				bufc = append(bufc, _bc...)
 			}
-			filename := path.Join(tf.Entry, "types", "micro_"+module.Name+".go")
+			os.MkdirAll(path.Join(tf.Entry, "types", "micro_"+module.Name), 0777)
+			filename := path.Join(tf.Entry, "types", "micro_"+module.Name, fmt.Sprintf("entity_%s", _fname))
 			bufd = a.format(bufd, filename)
 			err := tool_file.WriteFile(filename, bufd)
 			if err != nil {
-				log.Printf("types gen [%s] write file err: %v \n", filename, err)
+				log.Printf("types[micro] gen [%s] write file err: %v \n", filename, err)
 			}
-			log.Printf("gen types file %s \n", filename)
-
-			filename = path.Join(tf.Entry, "converter", "micro_"+module.Name+"_converter_gen.go")
-			bufc = a.format(bufc, filename)
-			err = tool_file.WriteFile(filename, bufc)
-			if err != nil {
-				log.Printf("types_conv gen [%s] write file err: %v \n", filename, err)
-			}
-			log.Printf("gen types_conv file %s \n", filename)
+			log.Printf("gen types[micro] file %s \n", filename)
 		}
+
+		filename := path.Join(tf.Entry, "converter", "micro_"+module.Name+"_converter_gen.go")
+		bufc = a.format(bufc, filename)
+		err = tool_file.WriteFile(filename, bufc)
+		if err != nil {
+			log.Printf("types_conv gen [%s] write file err: %v \n", filename, err)
+		}
+		log.Printf("gen types_conv file %s \n", filename)
+	}
+}
+
+func (a *App) eTypes(xstList []parser.XST) {
+	if a.Type != TypeAPI {
+		return
+	}
+
+	for _, tf := range a.typesGenFiles() {
+		if !tool_file.Exists(path.Join(tf.Entry, "types")) || !tool_file.Exists(path.Join(tf.Entry, "converter")) {
+			continue
+		}
+		// modules
+		a.modulesTypes(tf)
 		// business
 		var (
 			xstMaps = map[string][]parser.XST{}
@@ -228,7 +249,7 @@ func (a *App) eTypes(xstList []parser.XST) {
 			}
 			filename := path.Join(tf.Entry, "types", fmt.Sprintf("entity_%s", _fname))
 			bufd = a.format(bufd, filename)
-			err = tool_file.WriteFile(filename, bufd)
+			err := tool_file.WriteFile(filename, bufd)
 			if err != nil {
 				log.Printf("types gen [%s] write file err: %v \n", filename, err)
 			}
@@ -236,7 +257,7 @@ func (a *App) eTypes(xstList []parser.XST) {
 		}
 		filename := path.Join(tf.Entry, "converter", "entity_converter_gen.go")
 		bufc = a.format(bufc, filename)
-		err = tool_file.WriteFile(filename, bufc)
+		err := tool_file.WriteFile(filename, bufc)
 		if err != nil {
 			log.Printf("types_conv gen [%s] write file err: %v \n", filename, err)
 		}
@@ -244,14 +265,6 @@ func (a *App) eTypes(xstList []parser.XST) {
 
 	}
 
-}
-
-func (a *App) typesNext() {
-	// 解析 types
-
-	// 生成 type_def
-
-	// 生成 pb文件
 }
 
 func (a *App) _types(xst parser.XST, tagName string) ([]byte, []byte, error) {
