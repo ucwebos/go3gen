@@ -102,7 +102,7 @@ func (dao *{{.DaoName}}) FindPage(session *gorm.DB) (do.{{.EntityListName}}, int
 
 func (dao *{{.DaoName}}) Count(session *gorm.DB) (int64, error) {
 	var count int64
-	err = session.Count(&count).Error
+	err := session.Count(&count).Error
 	if err != nil {
 		return 0, errors.Wrapf(err, "{{.DaoName}} Count failed 数据库错误")
 	}

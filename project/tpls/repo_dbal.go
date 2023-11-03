@@ -160,7 +160,7 @@ func (impl *{{.EntityName}}RepoDBAL) Count(ctx context.Context, query filterx.Fi
 	session := impl.NewReadSession(ctx)
 	session, err := query.GormOption(session)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 	return impl.Dao.Count(session)
 }
