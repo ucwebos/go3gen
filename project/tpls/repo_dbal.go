@@ -32,6 +32,10 @@ func (r *{{.EntityName}}Repo) Query(ctx context.Context, query filterx.Filtering
 	return r.DBAL.Query(ctx,query,pg)
 }
 
+func (r *{{.EntityName}}Repo) Count(ctx context.Context, query filterx.FilteringList) (int64, error) {
+	return r.DBAL.Count(ctx, query)
+}
+
 func (r *{{.EntityName}}Repo) QueryOne(ctx context.Context, query filterx.FilteringList) (*entity.{{.EntityName}}, error) {
 	return r.DBAL.QueryOne(ctx, query)
 }
@@ -150,6 +154,15 @@ func (impl *{{.EntityName}}RepoDBAL) Query(ctx context.Context, query filterx.Fi
 		return nil, 0, err
 	}
 	return converter.To{{.EntityName}}List(doList), count, nil
+}
+
+func (impl *{{.EntityName}}RepoDBAL) Count(ctx context.Context, query filterx.FilteringList) (int64, error) {
+	session := impl.NewReadSession(ctx)
+	session, err := query.GormOption(session)
+	if err != nil {
+		return nil, err
+	}
+	return impl.Dao.Count(session)
 }
 
 func (impl *{{.EntityName}}RepoDBAL) QueryOne(ctx context.Context, query filterx.FilteringList) (*entity.{{.EntityName}}, error) {
