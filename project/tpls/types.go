@@ -43,7 +43,7 @@ func (s *IO) Execute() ([]byte, error) {
 }
 
 const convIoTpl = `
-func From{{.Name}}Entity(input *entity.{{.Name}}) *types.{{.Name}}{
+func From{{.NameMark}}{{.Name}}Entity(input *entity.{{.Name}}) *types.{{.Name}}{
 	if input == nil {
 		return nil
 	}
@@ -54,7 +54,7 @@ func From{{.Name}}Entity(input *entity.{{.Name}}) *types.{{.Name}}{
 	{{- else if eq .SType 2}}
 	if input.{{.Name}} != nil {
 		{{- if .Type2Entity}}
-		output.{{.Name}} = From{{.Type2}}List(input.{{.Name}})
+		output.{{.Name}} = From{{$.NameMark}}{{.Type2}}List(input.{{.Name}})
 		{{- else}}
 		output.{{.Name}} = input.{{.Name}}
 		{{- end}}
@@ -70,7 +70,7 @@ func From{{.Name}}Entity(input *entity.{{.Name}}) *types.{{.Name}}{
 	return output
 }
 
-func To{{.Name}}Entity(input *types.{{.Name}}) *entity.{{.Name}}{
+func To{{.NameMark}}{{.Name}}Entity(input *types.{{.Name}}) *entity.{{.Name}}{
 	if input == nil {
 		return nil
 	}
@@ -80,7 +80,7 @@ func To{{.Name}}Entity(input *types.{{.Name}}) *entity.{{.Name}}{
 	output.{{.Name}} = To{{.Type2}}Entity(input.{{.Name}})
 	{{- else if eq .SType 2}}
 		{{- if .Type2Entity}}
-		output.{{.Name}} = To{{.Type2}}List(input.{{.Name}})
+		output.{{.Name}} = To{{$.NameMark}}{{.Type2}}List(input.{{.Name}})
 		{{- else}}
 		output.{{.Name}} = input.{{.Name}}
 		{{- end}}
@@ -95,25 +95,25 @@ func To{{.Name}}Entity(input *types.{{.Name}}) *entity.{{.Name}}{
 	return output
 }
 
-func From{{.Name}}List(input entity.{{.Name}}List) []*types.{{.Name}} {
+func From{{.NameMark}}{{.Name}}List(input entity.{{.Name}}List) []*types.{{.Name}} {
 	if input == nil {
 		return nil
 	}
 	output := make([]*types.{{.Name}}, 0, len(input))
 	for _, item := range input {
-		resultItem := From{{.Name}}Entity(item)
+		resultItem := From{{.NameMark}}{{.Name}}Entity(item)
 		output = append(output, resultItem)
 	}
 	return output
 }
 
-func To{{.Name}}List(input []*types.{{.Name}}) entity.{{.Name}}List {
+func To{{.NameMark}}{{.Name}}List(input []*types.{{.Name}}) entity.{{.Name}}List {
 	if input == nil || len(input) == 0 {
 		return nil
 	}
 	output := make(entity.{{.Name}}List, 0, len(input))
 	for _, item := range input {
-		resultItem := To{{.Name}}Entity(item)
+		resultItem := To{{.NameMark}}{{.Name}}Entity(item)
 		output = append(output, resultItem)
 	}
 	return output
@@ -122,11 +122,12 @@ func To{{.Name}}List(input []*types.{{.Name}}) entity.{{.Name}}List {
 `
 
 type IoConv struct {
-	SrcPath string
-	Name    string
-	Package string
-	Imports []string
-	Fields  []IoField
+	SrcPath  string
+	Name     string
+	NameMark string
+	Package  string
+	Imports  []string
+	Fields   []IoField
 }
 
 func (s *IoConv) Execute() ([]byte, error) {

@@ -175,7 +175,7 @@ func (a *App) modulesTypes(tf typesGenFile) {
 				})
 			)
 			for _, xst := range xstList {
-				_b, _bc, err := a._types(xst, "json")
+				_b, _bc, err := a._types(xst, "json", "Micro"+tool_str.ToUFirst(module.Name))
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -239,8 +239,7 @@ func (a *App) eTypes(xstList []parser.XST) {
 				})
 			)
 			for _, xst := range xstList {
-
-				_b, _bc, err := a._types(xst, "json")
+				_b, _bc, err := a._types(xst, "json", "")
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -267,7 +266,7 @@ func (a *App) eTypes(xstList []parser.XST) {
 
 }
 
-func (a *App) _types(xst parser.XST, tagName string) ([]byte, []byte, error) {
+func (a *App) _types(xst parser.XST, tagName string, nameMark string) ([]byte, []byte, error) {
 	// todo 改成types 可编辑 字段增量变更模式
 	gio := tpls.IO{
 		Name:   xst.Name,
@@ -340,22 +339,23 @@ func (a *App) _types(xst parser.XST, tagName string) ([]byte, []byte, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	convBuf, err := a._ioConv(gio)
+	convBuf, err := a._ioConv(gio, nameMark)
 	if err != nil {
 		return nil, nil, err
 	}
 	return buf, convBuf, nil
 }
 
-func (a *App) _ioConv(gio tpls.IO) ([]byte, error) {
+func (a *App) _ioConv(gio tpls.IO, nameMark string) ([]byte, error) {
 	for idx, item := range gio.Fields {
 		if item.Name == "" {
 			gio.Fields[idx].Name = item.Type2
 		}
 	}
 	convGen := tpls.IoConv{
-		Name:   gio.Name,
-		Fields: gio.Fields,
+		Name:     gio.Name,
+		NameMark: nameMark,
+		Fields:   gio.Fields,
 	}
 	buf, err := convGen.Execute()
 	if err != nil {
