@@ -12,7 +12,7 @@ CREATE TABLE {{.TableName}} (
 	{{.Name}} {{.Type}} {{.NotNull}} {{.Default}} COMMENT '{{.Comment}}',
 {{- end}}
 	PRIMARY KEY ({{.PrimaryKey}}),
-	KEY (` + "`" + `deleted_at` + "`" + `)
+	KEY (` + "`" + `create_time` + "`" + `)
 ) ENGINE={{.Engine}} DEFAULT CHARSET={{.Charset}} COLLATE={{.Collate}};
 `
 

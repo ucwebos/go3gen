@@ -185,6 +185,26 @@ func (a *App) _cHttpDocs(ef tpls.HttpEntry) {
 	if err != nil {
 		log.Panic(err)
 	}
+
+	// modules
+	typesPath := path.Join(ef.EntryPath, "types")
+	fileInfos, err := os.ReadDir(typesPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, fi := range fileInfos {
+		if fi.IsDir() {
+			pwd := path.Join(typesPath, fi.Name())
+			_ips, err := parser.Scan(pwd, parser.ParseTypeWatch)
+			if err != nil {
+				log.Panic(err)
+			}
+			for s, xst := range _ips.StructList {
+				ips.StructList[fi.Name()+"."+s] = xst
+			}
+		}
+	}
+
 	for _, group := range ef.Groups {
 		dir := path.Join(cfg.C.RootPath, "panel", "docs", a.Name, ef.EntryName, group.Group)
 		os.MkdirAll(dir, 0777)
