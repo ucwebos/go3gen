@@ -174,8 +174,15 @@ func (a *App) modulesTypes(tf typesGenFile) {
 					"time",
 				})
 			)
+
+			ipts, err := parser.Scan(path.Join(tf.Entry, "types", "micro_"+module.Name), parser.ParseTypeWatch)
+			if err != nil {
+				log.Fatal(err)
+			}
+
 			for _, xst := range xstList {
-				_b, _bc, err := a._types(xst, "json", "Micro"+tool_str.ToUFirst(module.Name))
+				oldXst := ipts.StructList[xst.Name]
+				_b, _bc, err := a._types(xst, oldXst, "json", "Micro"+tool_str.ToUFirst(module.Name))
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -185,7 +192,7 @@ func (a *App) modulesTypes(tf typesGenFile) {
 			os.MkdirAll(path.Join(tf.Entry, "types", "micro_"+module.Name), 0777)
 			filename := path.Join(tf.Entry, "types", "micro_"+module.Name, fmt.Sprintf("entity_%s", _fname))
 			bufd = a.format(bufd, filename)
-			err := tool_file.WriteFile(filename, bufd)
+			err = tool_file.WriteFile(filename, bufd)
 			if err != nil {
 				log.Printf("types[micro] gen [%s] write file err: %v \n", filename, err)
 			}
@@ -231,6 +238,11 @@ func (a *App) eTypes(xstList []parser.XST) {
 			xstMaps[xst.File] = append(xstMaps[xst.File], xst)
 		}
 
+		ipts, err := parser.Scan(path.Join(tf.Entry, "types"), parser.ParseTypeWatch)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		for _file, xstList := range xstMaps {
 			var (
 				_, _fname = path.Split(_file)
@@ -239,7 +251,9 @@ func (a *App) eTypes(xstList []parser.XST) {
 				})
 			)
 			for _, xst := range xstList {
-				_b, _bc, err := a._types(xst, "json", "")
+
+				oldXst := ipts.StructList[xst.Name]
+				_b, _bc, err := a._types(xst, oldXst, "json", "")
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -256,7 +270,7 @@ func (a *App) eTypes(xstList []parser.XST) {
 		}
 		filename := path.Join(tf.Entry, "converter", "entity_converter_gen.go")
 		bufc = a.format(bufc, filename)
-		err := tool_file.WriteFile(filename, bufc)
+		err = tool_file.WriteFile(filename, bufc)
 		if err != nil {
 			log.Printf("types_conv gen [%s] write file err: %v \n", filename, err)
 		}
@@ -266,8 +280,8 @@ func (a *App) eTypes(xstList []parser.XST) {
 
 }
 
-func (a *App) _types(xst parser.XST, tagName string, nameMark string) ([]byte, []byte, error) {
-	// todo 改成types 可编辑 字段增量变更模式
+func (a *App) _types(xst parser.XST, oldXst parser.XST, tagName string, nameMark string) ([]byte, []byte, error) {
+
 	gio := tpls.IO{
 		Name:   xst.Name,
 		Fields: make([]tpls.IoField, 0),
@@ -279,6 +293,7 @@ func (a *App) _types(xst parser.XST, tagName string, nameMark string) ([]byte, [
 	sort.SliceStable(fieldList, func(i, j int) bool {
 		return fieldList[i].Idx < fieldList[j].Idx
 	})
+
 	for _, field := range fieldList {
 		tagJSON := field.GetTag("json")
 		tagIO := field.GetTag(tagName)
@@ -320,7 +335,6 @@ func (a *App) _types(xst parser.XST, tagName string, nameMark string) ([]byte, [
 				type2Entity = true
 			}
 		}
-
 		gio.Fields = append(gio.Fields, tpls.IoField{
 			Name:        field.Name,
 			Type:        fType,
@@ -335,14 +349,72 @@ func (a *App) _types(xst parser.XST, tagName string, nameMark string) ([]byte, [
 	if len(gio.Fields) == 0 {
 		return nil, nil, nil
 	}
-	buf, err := gio.Execute()
-	if err != nil {
-		return nil, nil, err
-	}
+
 	convBuf, err := a._ioConv(gio, nameMark)
 	if err != nil {
 		return nil, nil, err
 	}
+
+	// 自定义字段
+	for _, field := range oldXst.FieldList {
+		if _, ok := xst.FieldList[field.Name]; !ok {
+			tagJSON := field.GetTag("json")
+			tagIO := field.GetTag(tagName)
+			tags := ""
+
+			if tagJSON == nil {
+				continue
+			}
+			if tagJSON != nil {
+				tags = fmt.Sprintf("`json:\"%s\"`", tagJSON.Name)
+				if tagJSON.Name == "-" {
+					tags = ""
+				}
+			}
+			if tagIO != nil {
+				if tagIO.Txt == "-" {
+					continue
+				}
+				if tagIO.Txt != "" {
+					tagJSON.Name = tagIO.Name
+				}
+			}
+
+			type2 := ""
+			type2Entity := false
+
+			fType := field.Type
+			switch field.SType {
+			case 1:
+				type2 = strings.Replace(field.Type, "*", "", 1)
+				if strings.Contains(field.Type, "time.Time") {
+					field.SType = parser.STypeTime
+					fType = "string"
+				}
+			case 2:
+				type2 = strings.Replace(field.Type, "[]", "", 1)
+				type2 = strings.Replace(type2, "*", "", 1)
+				if tool_str.UFirst(type2) {
+					type2Entity = true
+				}
+			}
+			gio.Fields = append(gio.Fields, tpls.IoField{
+				Name:        field.Name,
+				Type:        fType,
+				Type2:       type2,
+				Type2Entity: type2Entity,
+				SType:       field.SType,
+				Tag:         tags,
+				Comment:     field.Comment,
+			})
+		}
+	}
+
+	buf, err := gio.Execute()
+	if err != nil {
+		return nil, nil, err
+	}
+
 	return buf, convBuf, nil
 }
 
