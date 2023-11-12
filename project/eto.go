@@ -299,6 +299,14 @@ func (a *App) _types(xst parser.XST, oldXst parser.XST, tagName string, nameMark
 	})
 
 	for _, field := range fieldList {
+		if oldXst.FieldList != nil && len(oldXst.FieldList) > 0 {
+			if of, ok := oldXst.FieldList[field.Name]; ok {
+				tagJSON := of.GetTag("json")
+				if tagJSON.Name == "-" {
+					continue
+				}
+			}
+		}
 		tagJSON := field.GetTag("json")
 		tagIO := field.GetTag(tagName)
 		tags := ""
