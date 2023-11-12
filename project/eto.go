@@ -173,11 +173,15 @@ func (a *App) modulesTypes(tf typesGenFile) {
 				bufd      = a.GenFileHeaderAllowEdit("micro_"+module.Name, []string{
 					"time",
 				})
+				ipts = &parser.IParser{
+					StructList: map[string]parser.XST{},
+				}
 			)
-
-			ipts, err := parser.Scan(path.Join(tf.Entry, "types", "micro_"+module.Name), parser.ParseTypeWatch)
-			if err != nil {
-				log.Fatal(err)
+			if tool_file.Exists(path.Join(tf.Entry, "types", "micro_"+module.Name)) {
+				ipts, err = parser.Scan(path.Join(tf.Entry, "types", "micro_"+module.Name), parser.ParseTypeWatch)
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
 
 			for _, xst := range xstList {
