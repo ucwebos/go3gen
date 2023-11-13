@@ -233,7 +233,7 @@ func (a *App) CHandlerAndDoc() {
 	for _, tf := range a.typesGenFiles() {
 		remark, err := parser.MicroEntryDoc(path.Join(tf.Entry, "route", "routes.go"))
 		if err == nil && remark != "" {
-			groups := a.BizEntryDocParse(tf.EntryName, remark)
+			groups := a.BizEntryDocParse(tf.EntryName, remark, false)
 			_tp := tpls.HttpEntry{
 				Project:      cfg.C.Project,
 				AppName:      a.Name,
@@ -262,6 +262,39 @@ func (a *App) CHandlerAndDoc() {
 	}
 }
 
+func (a *App) CWsHandlerAndDoc() {
+	for _, tf := range a.typesGenFiles() {
+		remark, err := parser.MicroEntryDoc(path.Join(tf.Entry, "route", "ws_routes.go"))
+		if err == nil && remark != "" {
+			groups := a.BizEntryDocParse(tf.EntryName, remark, true)
+			_tp := tpls.HttpEntry{
+				Project:      cfg.C.Project,
+				AppName:      a.Name,
+				AppNameUF:    tool_str.ToUFirst(a.Name),
+				AppPkgPath:   a.appPkgPath(),
+				EntryPath:    tf.Entry,
+				EntryPkgPath: tf.EntryPkgPath,
+				EntryName:    tf.EntryName,
+				Groups:       groups,
+			}
+			buf, err := _tp.Execute(tpls.WsRouteTpl)
+			if err != nil {
+				panic(err)
+			}
+			filename := path.Join(tf.Entry, "route", "ws_routes_gen.go")
+			buf = a.format(buf, filename)
+			log.Printf("gen routes file %s \n", filename)
+			err = tool_file.WriteFile(filename, buf)
+			if err != nil {
+				return
+			}
+			a._cHandler(_tp)
+			a._cHttpTypes(_tp)
+			a._cHttpDocs(_tp)
+		}
+	}
+}
+
 func (a *App) CRepos() {
 	// 解析 entity
 	ipr := a.scanEntity()
@@ -275,7 +308,7 @@ var (
 	handlerMiddleExp = regexp.MustCompile(`@M\(([\w|,|\(|\)]+)\)`)
 )
 
-func (a *App) BizEntryDocParse(entryName string, doc string) []*tpls.EntryGroup {
+func (a *App) BizEntryDocParse(entryName string, doc string, ws bool) []*tpls.EntryGroup {
 	groups := make([]*tpls.EntryGroup, 0)
 	lines := strings.Split(doc, "\n")
 	for _, line := range lines {
@@ -300,16 +333,21 @@ func (a *App) BizEntryDocParse(entryName string, doc string) []*tpls.EntryGroup 
 		group := groups[len(groups)-1]
 		r := handlerFunExp.FindStringSubmatch(line)
 		if len(r) == 3 {
-			fun := tool_str.ToUFirst(group.Group) + r[2]
-			m := strings.ReplaceAll(tool_str.ToSnakeCase(r[2]), "_", "-")
+			method := tool_str.ToUFirst(r[2])
+			fun := tool_str.ToUFirst(group.Group) + method
+			m := strings.ReplaceAll(tool_str.ToSnakeCase(method), "_", "-")
 			item := tpls.EntryFunItem{
 				FunName:     fun,
+				Method:      method,
 				FunMark:     r[1],
 				ReqName:     fun + "Req",
 				RespName:    fun + "Resp",
 				Middlewares: make([]string, 0),
 				URI:         fmt.Sprintf("/%s/%s/%s", entryName, group.Group, m),
 				URI2:        fmt.Sprintf("/%s/%s", group.Group, m),
+			}
+			if ws {
+				item.URI = fmt.Sprintf("%s.%s.%s", entryName, group.Group, m)
 			}
 			rm := handlerMiddleExp.FindStringSubmatch(line)
 			if len(rm) == 2 {

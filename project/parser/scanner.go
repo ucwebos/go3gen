@@ -350,6 +350,9 @@ func MicroEntryDoc(pwd string) (string, error) {
 			if x.Recv == nil && x.Name.Name == "_gen" {
 				return x.Doc.Text(), nil
 			}
+			if x.Recv == nil && x.Name.Name == "_wsGen" {
+				return x.Doc.Text(), nil
+			}
 		}
 	}
 	return "", nil

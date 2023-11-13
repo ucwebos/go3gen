@@ -77,6 +77,7 @@ func generate(cmd *cobra.Command, args []string) {
 		app.GI()
 		// CHandlerAndDoc
 		app.CHandlerAndDoc()
+		app.CWsHandlerAndDoc()
 		// Proto 生成
 		app.Protoc()
 	}

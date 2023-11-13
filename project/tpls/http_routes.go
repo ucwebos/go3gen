@@ -90,6 +90,7 @@ type EntryGroup struct {
 
 type EntryFunItem struct {
 	FunName     string
+	Method      string
 	FunMark     string
 	ReqName     string
 	RespName    string
