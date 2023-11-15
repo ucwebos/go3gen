@@ -69,16 +69,16 @@ func (dao *{{.DaoName}}) CreateBatch(session *gorm.DB, data do.{{.EntityListName
 }
 
 func (dao *{{.DaoName}}) Update(session *gorm.DB,updates map[string]any) error {
-	var err error = nil
-	if session.Updates(updates).Error != nil {
+	err := session.Updates(updates).Error
+	if err != nil {
 		return errors.Wrapf(err, "{{.DaoName}} Update failed")
 	}
 	return nil
 }
 
 func (dao *{{.DaoName}}) Delete(session *gorm.DB) error {
-	var err error = nil
-	if session.Delete(&do.{{.EntityName}}{}).Error != nil {
+	err := session.Delete(&do.{{.EntityName}}{}).Error
+	if  err != nil {
 		return errors.Wrapf(err, "{{.DaoName}} Delete failed")
 	}
 	return nil
