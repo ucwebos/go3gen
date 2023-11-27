@@ -350,7 +350,7 @@ func (a *App) _types(xst parser.XST, oldXst parser.XST, tagName string, nameMark
 						Type2:       type2,
 						Type2Entity: type2Entity,
 						SType:       field.SType,
-						Tag:         "-",
+						Tag:         "`json:\"-\"`",
 						Comment:     field.Comment,
 					})
 					continue
