@@ -50,7 +50,7 @@ func From{{.NameMark}}{{.Name}}Entity(input *entity.{{.Name}}) *types.{{.Name}}{
 	output := &types.{{.Name}}{}
 {{- range .Fields }}
 	{{- if eq .SType 1}}
-	output.{{.Name}} = From{{.Type2}}Entity(input.{{.Name}})
+	output.{{.Name}} = From{{$.NameMark}}{{.Type2}}Entity(input.{{.Name}})
 	{{- else if eq .SType 2}}
 	if input.{{.Name}} != nil {
 		{{- if .Type2Entity}}
@@ -77,7 +77,7 @@ func To{{.NameMark}}{{.Name}}Entity(input *types.{{.Name}}) *entity.{{.Name}}{
 	output := &entity.{{.Name}}{}
 {{- range .Fields }}
 	{{- if eq .SType 1}} 
-	output.{{.Name}} = To{{.Type2}}Entity(input.{{.Name}})
+	output.{{.Name}} = To{{$.NameMark}}{{.Type2}}Entity(input.{{.Name}})
 	{{- else if eq .SType 2}}
 		{{- if .Type2Entity}}
 		output.{{.Name}} = To{{$.NameMark}}{{.Type2}}List(input.{{.Name}})
