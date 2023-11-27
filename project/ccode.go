@@ -336,6 +336,7 @@ func (a *App) BizEntryDocParse(entryName string, doc string, ws bool) []*tpls.En
 			method := tool_str.ToUFirst(r[2])
 			fun := tool_str.ToUFirst(group.Group) + method
 			m := strings.ReplaceAll(tool_str.ToSnakeCase(method), "_", "-")
+			groupURIName := strings.ReplaceAll(tool_str.ToSnakeCase(group.Group), "_", "-")
 			item := tpls.EntryFunItem{
 				FunName:     fun,
 				Method:      method,
@@ -343,8 +344,8 @@ func (a *App) BizEntryDocParse(entryName string, doc string, ws bool) []*tpls.En
 				ReqName:     fun + "Req",
 				RespName:    fun + "Resp",
 				Middlewares: make([]string, 0),
-				URI:         fmt.Sprintf("/%s/%s/%s", entryName, group.Group, m),
-				URI2:        fmt.Sprintf("/%s/%s", group.Group, m),
+				URI:         fmt.Sprintf("/%s/%s/%s", entryName, groupURIName, m),
+				URI2:        fmt.Sprintf("/%s/%s", groupURIName, m),
 			}
 			if ws {
 				item.URI = fmt.Sprintf("%s.%s.%s", entryName, group.Group, m)
