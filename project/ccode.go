@@ -206,7 +206,8 @@ func (a *App) _cHttpDocs(ef tpls.HttpEntry) {
 	}
 
 	for _, group := range ef.Groups {
-		dir := path.Join(cfg.C.RootPath, "panel", "docs", a.Name, ef.EntryName, group.Group)
+		groupURIName := strings.ReplaceAll(tool_str.ToSnakeCase(group.Group), "_", "-")
+		dir := path.Join(cfg.C.RootPath, "panel", "docs", a.Name, ef.EntryName, groupURIName)
 		os.MkdirAll(dir, 0777)
 		for _, fun := range group.FunList {
 			a.docsItem(dir, fun, ips.StructList)
