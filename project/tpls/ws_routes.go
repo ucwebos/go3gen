@@ -25,14 +25,14 @@ import (
 
 {{- range $x := .Groups}}
 // ----------------------------------- {{.GroupName}} -----------------------------------
-type {{$x.Group}} struct {
+type {{$x.GroupUFirst}} struct {
 	component.Base
 	app pitaya.Pitaya
 }
 
 {{- range $it := .FunList}}
 	// {{.FunMark}}
-	func (m *{{$x.Group}}) {{$it.Method}}(ctx context.Context, req *types.{{$it.ReqName}}) (*types.{{$it.RespName}}, error) {
+	func (m *{{$x.GroupUFirst}}) {{$it.Method}}(ctx context.Context, req *types.{{$it.ReqName}}) (*types.{{$it.RespName}}, error) {
 		var (
 			st = time.Now()
 			resp = &types.{{$it.RespName}}{}
@@ -57,10 +57,10 @@ type {{$x.Group}} struct {
 {{- end}}
 
 func wsGenerated(app pitaya.Pitaya) {
-	app.Register(
 {{- range .Groups}}
-		&{{.Group}}{app: app}, component.WithName("{{.Group}}"), component.WithNameFunc(strings.ToLower),
-{{- end}}
+	app.Register(
+		&{{.GroupUFirst}}{app: app}, component.WithName("{{.Group}}"), component.WithNameFunc(strings.ToLower),
 	)
+{{- end}}
 }
 `

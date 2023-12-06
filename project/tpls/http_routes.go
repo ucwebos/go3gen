@@ -83,6 +83,7 @@ type HttpEntry struct {
 
 type EntryGroup struct {
 	Group        string
+	GroupUFirst  string
 	GroupName    string
 	GMiddlewares []string
 	FunList      []EntryFunItem

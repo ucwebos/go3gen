@@ -317,6 +317,7 @@ func (a *App) BizEntryDocParse(entryName string, doc string, ws bool) []*tpls.En
 		if len(rg) == 3 {
 			group := &tpls.EntryGroup{
 				Group:        rg[2],
+				GroupUFirst:  tool_str.ToUFirst(rg[2]),
 				GroupName:    rg[1],
 				FunList:      make([]tpls.EntryFunItem, 0),
 				GMiddlewares: make([]string, 0),
