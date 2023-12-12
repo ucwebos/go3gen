@@ -56,7 +56,7 @@ func generated(r *gin.Engine) {
 				"ret":    prometheus.RetLabel(err),
 			}, st)
 			_resp,_ := tools.JSON.Marshal(resp)
-			log.With().TraceID(_ctx).Field("uri", "{{$it.URI}}").Field("req", raw).Field("resp", _resp).Field("err", err).Info("on-http")
+			log.With().TraceID(_ctx).Field("common",_common).Field("uri", "{{$it.URI}}").Field("req", raw).Field("resp", _resp).Field("err", err).Info("on-http")
 		}()
 		if err = common.BindBody(reqRaw, &req); err != nil {
 			JSONError(ctx, common.ErrParams)
