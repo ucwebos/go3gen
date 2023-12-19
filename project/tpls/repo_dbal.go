@@ -44,6 +44,11 @@ func (r *{{.EntityName}}Repo) Create(ctx context.Context, input *entity.{{.Entit
 	return r.DBAL.Create(ctx,input)
 }
 
+func (r *{{.EntityName}}Repo) Save(ctx context.Context, input *entity.{{.EntityName}}) (*entity.{{.EntityName}}, error) {
+	return r.DBAL.Save(ctx,input)
+}
+
+
 func (r *{{.EntityName}}Repo) Transaction(ctx context.Context, executeFunc func(tx *gorm.DB) error) error {
 	return r.DBAL.Transaction(ctx, executeFunc)
 }
@@ -182,6 +187,17 @@ func (impl *{{.EntityName}}RepoDBAL) Create(ctx context.Context, input *entity.{
 	session := impl.NewCreateSession(ctx)
 	_do := converter.From{{.EntityName}}Entity(input)
 	err := impl.Dao.Create(session, _do)
+	if err != nil {
+		return nil, err
+	}
+	output := converter.To{{.EntityName}}Entity(_do)
+	return output, err
+}
+
+func (impl *{{.EntityName}}RepoDBAL) Save(ctx context.Context, input *entity.{{.EntityName}}) (*entity.{{.EntityName}}, error) {
+	session := impl.NewCreateSession(ctx)
+	_do := converter.From{{.EntityName}}Entity(input)
+	err := impl.Dao.Save(session, _do)
 	if err != nil {
 		return nil, err
 	}

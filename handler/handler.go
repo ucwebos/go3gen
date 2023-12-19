@@ -3,6 +3,7 @@ package handler
 import (
 	"bufio"
 	"fmt"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/spf13/cobra"
 	"github.com/ucwebos/go3gen/cfg"
 	"github.com/ucwebos/go3gen/project"
@@ -28,9 +29,15 @@ func CmdList() []*cobra.Command {
 			Run:   generate,
 		},
 		{
-			Use:   "sql",
+			Use:   "admin",
 			Short: "生成接口单元测试用例",
 			Long:  "生成接口单元测试用例; 参数 {app}; app为应用名称 必须",
+			Run:   admin,
+		},
+		{
+			Use:   "sql",
+			Short: "生成SQL文件",
+			Long:  "生成SQL文件",
 			Run:   sql,
 		},
 	}
@@ -85,20 +92,10 @@ func generate(cmd *cobra.Command, args []string) {
 
 func sql(cmd *cobra.Command, args []string) {
 	_project()
-	var (
-		dbSet = cfg.DBSet{}
-	)
-	buf, _ := os.ReadFile(cfg.C.RootPath + "/.go3gen.yaml")
-	err := yaml.Unmarshal(buf, &dbSet)
-	if err != nil {
-		panic(err)
-	}
-
 	for _, app := range _scanBusiness() {
-		fmt.Println(app.Name)
-		dsn, ok := dbSet.DBMaps[app.Name]
+		dsn, ok := cfg.C.DBMaps[app.Name]
 		if !ok {
-			dsn = dbSet.DB
+			dsn = cfg.C.DB
 		}
 		if dsn == "" {
 			log.Fatalf("db not set!")
@@ -108,16 +105,54 @@ func sql(cmd *cobra.Command, args []string) {
 	}
 
 	for _, app := range _scanMicros() {
-		fmt.Println("micro:", app.Name)
-		dsn, ok := dbSet.DBMaps[app.Name]
+		dsn, ok := cfg.C.DBMaps[app.Name]
 		if !ok {
-			dsn = dbSet.DB
+			dsn = cfg.C.DB
 		}
 		if dsn == "" {
 			log.Fatalf("db not set!")
 			return
 		}
 		app.GenSql(dsn)
+	}
+}
+
+func admin(cmd *cobra.Command, args []string) {
+	_project()
+	var (
+		genGroups = make([]project.AdminGroup, 0)
+	)
+	cmdPath := path.Join(cfg.C.RootPath, "panel", "admin", "micro")
+	fileInfos, err := os.ReadDir(cmdPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, fi := range fileInfos {
+		if fi.IsDir() {
+			genFile := path.Join(cmdPath, fi.Name(), "gen.json")
+			if !tool_file.Exists(genFile) {
+				continue
+			}
+			JSONBuf, err := os.ReadFile(genFile)
+			if err != nil {
+				continue
+			}
+			group := project.AdminGroup{
+				Type:      project.TypeMicro,
+				Name:      fi.Name(),
+				Path:      path.Join(cfg.C.RootPath, "micro", fi.Name()),
+				AdminRoot: path.Join(cfg.C.AdminRoot, "src", "views", "micro"),
+			}
+			err = jsoniter.Unmarshal(JSONBuf, &group)
+			if err != nil {
+				continue
+			}
+			genGroups = append(genGroups, group)
+		}
+	}
+
+	for _, group := range genGroups {
+		group.GenUI()
 	}
 }
 
@@ -139,6 +174,13 @@ func _project() {
 		cfg.C.Project = strings.TrimSpace(module)
 		break
 	}
+	if tool_file.Exists(cfg.C.RootPath + "/.go3gen.yaml") {
+		buf, _ := os.ReadFile(cfg.C.RootPath + "/.go3gen.yaml")
+		err := yaml.Unmarshal(buf, cfg.C)
+		if err != nil {
+			panic(err)
+		}
+	}
 }
 
 func _scanMicros() []*project.App {
@@ -152,7 +194,7 @@ func _scanMicros() []*project.App {
 		for _, fi := range fileInfos {
 			if fi.IsDir() {
 				iPwd := path.Join(micro, fi.Name())
-				app := project.NewApp(project.TypeModule, fi.Name(), iPwd)
+				app := project.NewApp(project.TypeMicro, fi.Name(), iPwd)
 				appList = append(appList, app)
 			}
 		}

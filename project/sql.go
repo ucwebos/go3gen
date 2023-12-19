@@ -34,7 +34,6 @@ func (a *App) GenSql(dsn string) {
 
 func (a *App) createTableSQL(db *utils.DB, tableName string, xst parser.XST) error {
 	filename := fmt.Sprintf("%s/%s_create.sql", path.Join(a.Path, "repo", "dbal", "sql"), tableName)
-	fmt.Println(filename)
 	createSQL := db.TableCreateSQL(tableName)
 	if createSQL != "" {
 		tool_file.WriteFile(filename, []byte(createSQL))

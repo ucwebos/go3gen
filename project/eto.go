@@ -21,7 +21,7 @@ func (a *App) ETO() {
 	ipr := a.scanEntity()
 	xstList := ipr.GetStructList()
 	// 模块
-	if a.Type == TypeModule {
+	if a.Type == TypeMicro {
 		modules = append(modules, MicroXSTList{
 			Name:    a.Name,
 			PkgPath: a.appPkgPath(),
@@ -39,7 +39,7 @@ func (a *App) ETO() {
 }
 
 func (a *App) eTypeDef(xstList []parser.XST) {
-	buf := []byte(fmt.Sprintf(tpls.EntityTypeDefCodes, "entity", cfg.C.Project))
+	buf := []byte(fmt.Sprintf(tpls.EntityTypeDefCodes, "entity", cfg.C.Project, cfg.C.Project))
 	for _, xst := range xstList {
 		_b, err := a._typedef(xst)
 		if err != nil {
@@ -98,7 +98,7 @@ func (a *App) doNext() {
 	ipr := a.scanDo()
 	xstList := ipr.GetStructList()
 	// 生成 type_def
-	buf := []byte(fmt.Sprintf(tpls.EntityTypeDefCodes, "do", cfg.C.Project))
+	buf := []byte(fmt.Sprintf(tpls.EntityTypeDefCodes, "do", cfg.C.Project, cfg.C.Project))
 	for _, xst := range xstList {
 		_b, err := a._typedef(xst)
 		if err != nil {
@@ -613,6 +613,7 @@ func (a *App) _typedef(xst parser.XST) ([]byte, error) {
 			FieldEscapedTag: fmt.Sprintf("%q", tags),
 			FieldTagMap:     tagsMap,
 			DBTag:           dbTag,
+			JSONTag:         tagsMap["json"],
 			Type:            _type,
 			UseJSON:         false,
 			NamedType:       "",

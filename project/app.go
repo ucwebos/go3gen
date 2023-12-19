@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	TypeAPI    = 1
-	TypeModule = 2
+	TypeAPI   = 1
+	TypeMicro = 2
 )
 
 type App struct {

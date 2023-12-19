@@ -11,8 +11,11 @@ package %s
 
 import (
 	"encoding/json"
+	"reflect"
+	"strings"
 
-    "%s/common/tools/tool_slice"
+	"%s/common/tools"
+	"%s/common/tools/tool_slice"
 )
 `
 
@@ -44,10 +47,10 @@ func (e *{{$.EntityName}}) ToTagMap(tagName string) map[string]any {
 	}
 	return out
 }
-func (e *{{$.EntityName}}) ConverterToDBTagMap(input map[string]any) map[string]any {
-	out := make(map[string]any)
-	//out[""] := input[""]
-	return out
+
+func (e *{{$.EntityName}}) FromMap(input map[string]any)  {
+	b,_ := tools.JSONFuzzy.Marshal(input)
+	tools.JSONFuzzy.Unmarshal(b,&e)
 }
 type {{.EntityListName}} []*{{.EntityName}}
 func (list {{$.EntityListName}}) String() string {
@@ -186,6 +189,7 @@ type Field struct {
 	FieldEscapedTag string
 	FieldTagMap     map[string]string
 	DBTag           string
+	JSONTag         string
 	Type            string
 	UseJSON         bool
 	NamedType       string

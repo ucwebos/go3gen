@@ -25,7 +25,7 @@ import (
 	"{{.AppPkgPath}}/cmd/{{.EntryName}}/types"
 )
 
-func generated(r *gin.Engine) {
+func generated(r gin.IRoutes) {
 
 	{{- range .Groups}}
 	// ----------------------------------- {{.GroupName}} -----------------------------------
