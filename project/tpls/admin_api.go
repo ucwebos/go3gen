@@ -1,33 +1,195 @@
 package tpls
 
-const AdminAPITpl = `package service
-
 import (
-	"context"
-	"testing"
-
-	"{{.AppPkgPath}}/types_{{.AppName}}"
+	"bytes"
+	"text/template"
 )
 
-{{range .FunList}}
+const AdminAPIItemTpl = `package {{.PkgName}}
 
-func Test{{.Service}}_{{.Method}}(t *testing.T) {
-	// 一些依赖
-	// ...
+import (
+	"github.com/gin-gonic/gin"
 
-	ctx := context.Background()
-	//ctx = context.WithValue(ctx, common.UIDKey, int64(1))
-	resp, err := {{.Service}}Instance().{{.Method}}(ctx, &types_{{$.AppName}}.{{.ReqName}}{
-		// ...
-	})
+	"{{.Project}}/common/tools"
+	"{{.Project}}/panel/types"
+	
+	"{{.Project}}/micro/{{.AppName}}/entity"
+	"{{.Project}}/micro/{{.AppName}}/repo"
+)
+
+
+type {{.Name}}ListReq struct {
+	Page *types.Page ` + "`json:\"page\"`" + `
+	Form types.Form  ` + "`json:\"form\"`" + `
+	Sort *types.Sort ` + "`json:\"sort\"`" + `
+}
+
+type {{.Name}}ListResp struct {
+	CurrentPage int             ` + "`json:\"currentPage\"`" + `
+	PageSize    int             ` + "`json:\"pageSize\"`" + `
+	Total       int             ` + "`json:\"total\"`" + `
+	Records     []*entity.{{.Name}} ` + "`json:\"records\"`" + `
+	Form        types.Form      ` + "`json:\"form\"`" + `
+	Sort        *types.Sort     ` + "`json:\"sort\"`" + `
+}
+
+func {{.Name}}List(ctx *gin.Context) {
+	var (
+		req  = &{{.Name}}ListReq{}
+		resp = &{{.Name}}ListResp{}
+	)
+	_buf, err := ctx.GetRawData()
 	if err != nil {
-		t.Fatal(err)
+		types.JSONError(ctx, 501, err.Error())
+		return
 	}
-	t.Logf("resp: %+v \n", *resp)
+	err = tools.JSON.Unmarshal(_buf, &req)
+	if err != nil {
+		types.JSONError(ctx, 501, err.Error())
+		return
+	}
+
+	list, total, err := repo.{{.Name}}RepoInstance().Query(ctx, req.Form.ToFilteringList(), nil)
+	if err != nil {
+		types.JSONError(ctx, 500, err.Error())
+		return
+	}
+	resp.Records = list
+	resp.Total = total
+	resp.CurrentPage = req.Page.CurrentPage
+	resp.PageSize = req.Page.PageSize
+	types.JSONSuccess(ctx, resp)
 }
 
-func Benchmark{{.Service}}_{{.Method}}(b *testing.B)  {
-	// todo...
+type {{.Name}}AddReq map[string]any
+
+func (req {{.Name}}AddReq) ToEntity() *entity.{{.Name}} {
+	out := &entity.{{.Name}}{}
+	out.FromMap(req)
+	return out
 }
 
-{{end}}`
+type {{.Name}}AddResp struct {
+	Target *entity.{{.Name}} ` + "`json:\"target\"`" + `
+}
+
+func {{.Name}}Add(ctx *gin.Context) {
+	var (
+		req  = &{{.Name}}AddReq{}
+		resp = &{{.Name}}AddResp{}
+	)
+	_buf, err := ctx.GetRawData()
+	if err != nil {
+		types.JSONError(ctx, 501, err.Error())
+		return
+	}
+	err = tools.JSON.Unmarshal(_buf, &req)
+	if err != nil {
+		types.JSONError(ctx, 501, err.Error())
+		return
+	}
+
+	rs, err := repo.{{.Name}}RepoInstance().Create(ctx, req.ToEntity())
+	if err != nil {
+		types.JSONError(ctx, 500, err.Error())
+		return
+	}
+	resp.Target = rs
+	types.JSONSuccess(ctx, resp)
+}
+
+type {{.Name}}EditReq map[string]any
+
+func (req {{.Name}}EditReq) ToEntity() *entity.{{.Name}} {
+	out := &entity.{{.Name}}{}
+	out.FromMap(req)
+	return out
+}
+
+type {{.Name}}EditResp struct {
+	Target *entity.{{.Name}} ` + "`json:\"target\"`" + `
+}
+
+func {{.Name}}Edit(ctx *gin.Context) {
+	var (
+		req  = &{{.Name}}EditReq{}
+		resp = &{{.Name}}EditResp{}
+	)
+	_buf, err := ctx.GetRawData()
+	if err != nil {
+		types.JSONError(ctx, 501, err.Error())
+		return
+	}
+	err = tools.JSON.Unmarshal(_buf, &req)
+	if err != nil {
+		types.JSONError(ctx, 501, err.Error())
+		return
+	}
+	rs := req.ToEntity()
+	old, err := repo.{{.Name}}RepoInstance().GetByID(ctx, rs.ID)
+	if err != nil {
+		types.JSONError(ctx, 500, err.Error())
+		return
+	}
+	if old == nil {
+		types.JSONError(ctx, 501, "not found")
+		return
+	}
+	rs, err = repo.{{.Name}}RepoInstance().Save(ctx, rs)
+	if err != nil {
+		types.JSONError(ctx, 500, err.Error())
+		return
+	}
+	resp.Target = rs
+	types.JSONSuccess(ctx, resp)
+}
+
+type {{.Name}}DeleteReq struct {
+	ID int64 ` + "`json:\"id\"`" + `
+}
+
+type {{.Name}}DeleteResp struct {
+}
+
+func {{.Name}}Delete(ctx *gin.Context) {
+	var (
+		req  = &{{.Name}}DeleteReq{}
+		resp = &{{.Name}}DeleteResp{}
+	)
+	_buf, err := ctx.GetRawData()
+	if err != nil {
+		types.JSONError(ctx, 501, err.Error())
+		return
+	}
+	err = tools.JSON.Unmarshal(_buf, &req)
+	if err != nil {
+		types.JSONError(ctx, 501, err.Error())
+		return
+	}
+	err = repo.{{.Name}}RepoInstance().DeleteByID(ctx, req.ID)
+	if err != nil {
+		types.JSONError(ctx, 500, err.Error())
+		return
+	}
+	types.JSONSuccess(ctx, resp)
+}`
+
+type AdminAPIItem struct {
+	Project string
+	AppName string
+	PkgName string
+	Name    string
+	NameVal string
+}
+
+func (s *AdminAPIItem) Execute() ([]byte, error) {
+	buf := new(bytes.Buffer)
+	tmpl, err := template.New("AdminAPIItem").Parse(AdminAPIItemTpl)
+	if err != nil {
+		return nil, err
+	}
+	if err := tmpl.Execute(buf, s); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}

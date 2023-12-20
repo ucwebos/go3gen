@@ -1,6 +1,7 @@
 package project
 
 import (
+	"github.com/ucwebos/go3gen/cfg"
 	"github.com/ucwebos/go3gen/project/parser"
 	"github.com/ucwebos/go3gen/project/tpls"
 	"github.com/xbitgo/core/tools/tool_file"
@@ -12,7 +13,7 @@ import (
 )
 
 func (a *AdminGroup) GenUI() {
-	tg := a.toTpl()
+	tg := a.ToTpl()
 	// API
 	a.adminAPI(tg)
 
@@ -40,7 +41,7 @@ type AdminItem struct {
 	Icon   string `json:"icon"`
 }
 
-func (a *AdminGroup) toTpl() *tpls.AdminGroup {
+func (a *AdminGroup) ToTpl() *tpls.AdminGroup {
 	entityDir := path.Join(a.Path, "entity")
 	ipr, err := parser.Scan(entityDir, parser.ParseTypeWatch)
 	if err != nil {
@@ -92,6 +93,21 @@ func (a *AdminGroup) toTpl() *tpls.AdminGroup {
 }
 
 func (a *AdminGroup) adminAPI(tg *tpls.AdminGroup) {
+	dir := path.Join(cfg.C.RootPath, "panel", "admin", "micro", tg.Name)
+	for _, item := range tg.CrudList {
+		_t := &tpls.AdminAPIItem{
+			Project: cfg.C.Project,
+			AppName: tg.Name,
+			PkgName: tg.Name,
+			Name:    item.Name,
+			NameVal: item.NameVal,
+		}
+		buf, err := _t.Execute()
+		if err != nil {
+			panic(err)
+		}
+		tool_file.WriteFile(path.Join(dir, item.NameVal+".go"), buf)
+	}
 
 }
 

@@ -150,10 +150,20 @@ func admin(cmd *cobra.Command, args []string) {
 			genGroups = append(genGroups, group)
 		}
 	}
-
+	_tplGroups := make([]*tpls.AdminGroup, 0)
 	for _, group := range genGroups {
 		group.GenUI()
+		_tplGroups = append(_tplGroups, group.ToTpl())
 	}
+	aaRoute := &tpls.AdminAPIRoute{
+		Project: cfg.C.Project,
+		Groups:  _tplGroups,
+	}
+	buf, err := aaRoute.Execute()
+	if err != nil {
+		panic(err)
+	}
+	tool_file.WriteFile(path.Join(cfg.C.RootPath, "panel", "admin", "micro", "route.go"), buf)
 }
 
 func _project() {
