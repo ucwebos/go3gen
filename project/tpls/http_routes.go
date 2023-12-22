@@ -20,9 +20,9 @@ import (
 	"{{.Project}}/common/core/otel/tracing"
 
 
-	"{{.AppPkgPath}}/cmd/{{.EntryName}}/handler"
-	"{{.AppPkgPath}}/cmd/{{.EntryName}}/middleware"
-	"{{.AppPkgPath}}/cmd/{{.EntryName}}/types"
+	"{{.EntryPkgPath}}/handler"
+	"{{.EntryPkgPath}}/middleware"
+	"{{.EntryPkgPath}}/types"
 )
 
 func generated(r gin.IRoutes) {

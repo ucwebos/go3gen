@@ -12,6 +12,7 @@ import (
 const (
 	TypeAPI   = 1
 	TypeMicro = 2
+	TypeBFF   = 3
 )
 
 type App struct {
@@ -52,11 +53,16 @@ func (a *App) scanDo() *parser.IParser {
 func (a *App) scanGIList() []*parser.IParser {
 	iprs := make([]*parser.IParser, 0)
 	ignoreDir := map[string]struct{}{
-		"cmd":     {},
-		"config":  {},
-		"entity":  {},
-		"jobs":    {},
-		"scripts": {},
+		"cmd":        {},
+		"config":     {},
+		"entity":     {},
+		"jobs":       {},
+		"scripts":    {},
+		"converter":  {},
+		"handler":    {},
+		"middleware": {},
+		"route":      {},
+		"types":      {},
 	}
 	fileInfos, err := os.ReadDir(a.Path)
 	if err != nil {
@@ -102,7 +108,8 @@ func (a *App) doDaoGenFile() string {
 
 func (a *App) typesGenFiles() []typesGenFile {
 	typesFiles := make([]typesGenFile, 0)
-	if a.Type == TypeAPI {
+	switch a.Type {
+	case TypeAPI:
 		cmdPath := path.Join(a.Path, "cmd")
 		fileInfos, err := os.ReadDir(cmdPath)
 		if err != nil {
@@ -121,7 +128,18 @@ func (a *App) typesGenFiles() []typesGenFile {
 				})
 			}
 		}
+	case TypeBFF:
+		typesFiles = append(typesFiles, typesGenFile{
+			EntryName:    a.Name,
+			Entry:        a.Path,
+			EntryPkgPath: a.appPkgPath(),
+			Header: a.GenFileHeader("types", []string{
+				"time",
+			}),
+		})
+
 	}
+
 	return typesFiles
 }
 

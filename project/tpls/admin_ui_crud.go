@@ -21,6 +21,7 @@ export default function ({ crudExpose, context }: CreateCrudOptionsProps): Creat
           type: "text",
           search: { show: true },
           column: {
+			show: true,
             resizable: true,
             width: 200
           }

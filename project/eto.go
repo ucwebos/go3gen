@@ -213,8 +213,18 @@ func (a *App) modulesTypes(tf typesGenFile) {
 	}
 }
 
+func (a *App) BffModulesTypes() {
+	for _, tf := range a.typesGenFiles() {
+		if !tool_file.Exists(path.Join(tf.Entry, "types")) || !tool_file.Exists(path.Join(tf.Entry, "converter")) {
+			continue
+		}
+		// modules
+		a.modulesTypes(tf)
+	}
+}
+
 func (a *App) eTypes(xstList []parser.XST) {
-	if a.Type != TypeAPI {
+	if a.Type == TypeMicro {
 		return
 	}
 

@@ -88,6 +88,17 @@ func generate(cmd *cobra.Command, args []string) {
 		// Proto 生成
 		app.Protoc()
 	}
+
+	for _, app := range _scanBFF() {
+		app.BffModulesTypes()
+		// GI
+		app.GI()
+		// CHandlerAndDoc
+		app.CHandlerAndDoc()
+		app.CWsHandlerAndDoc()
+		// Proto 生成
+		app.Protoc()
+	}
 }
 
 func sql(cmd *cobra.Command, args []string) {
@@ -225,6 +236,25 @@ func _scanBusiness() []*project.App {
 			if fi.IsDir() {
 				iPwd := path.Join(biz, fi.Name())
 				app := project.NewApp(project.TypeAPI, fi.Name(), iPwd)
+				appList = append(appList, app)
+			}
+		}
+	}
+	return appList
+}
+
+func _scanBFF() []*project.App {
+	appList := make([]*project.App, 0)
+	bff := path.Join(pwd, "bff")
+	if tool_file.Exists(bff) {
+		fileInfos, err := os.ReadDir(bff)
+		if err != nil {
+			log.Fatal(err)
+		}
+		for _, fi := range fileInfos {
+			if fi.IsDir() {
+				iPwd := path.Join(bff, fi.Name())
+				app := project.NewApp(project.TypeBFF, fi.Name(), iPwd)
 				appList = append(appList, app)
 			}
 		}

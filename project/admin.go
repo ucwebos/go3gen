@@ -80,7 +80,7 @@ func (a *AdminGroup) ToTpl() *tpls.AdminGroup {
 				}
 			}
 			tg.CrudList = append(tg.CrudList, tpls.CrudItem{
-				ApiBaseURL: "",
+				ApiBaseURL: "/micro/" + tg.Name,
 				Name:       it.Entity,
 				NameVal:    tool_str.ToSnakeCase(it.Entity),
 				Title:      it.Title,
