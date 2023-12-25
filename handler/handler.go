@@ -24,14 +24,26 @@ func CmdList() []*cobra.Command {
 	return []*cobra.Command{
 		{
 			Use:   "generate",
-			Short: "生成所有go代码 依次 eto > c.code > conv > GI",
-			Long:  "生成所有go代码 依次 eto > c.code > conv > GI",
+			Short: "生成go代码",
+			Long:  "生成go代码",
 			Run:   generate,
 		},
 		{
+			Use:   "add-m",
+			Short: "添加一个微模块",
+			Long:  "添加一个微模块 go3gen add-m {name}",
+			Run:   addMs,
+		},
+		{
+			Use:   "add-bff",
+			Short: "添加一个BFF",
+			Long:  "添加一个BFF go3gen add-bff {name}",
+			Run:   addBff,
+		},
+		{
 			Use:   "admin",
-			Short: "生成接口单元测试用例",
-			Long:  "生成接口单元测试用例; 参数 {app}; app为应用名称 必须",
+			Short: "生成微模块CRUD后台",
+			Long:  "生成微模块CRUD后台",
 			Run:   admin,
 		},
 		{
@@ -47,9 +59,6 @@ func generate(cmd *cobra.Command, args []string) {
 	_project()
 	microList := make([]string, 0)
 	for _, app := range _scanMicros() {
-		//if app.Name != "mail" {
-		//	continue
-		//}
 		// ETO 生成
 		app.ETO()
 		// CRepos 生成
@@ -60,7 +69,6 @@ func generate(cmd *cobra.Command, args []string) {
 		}
 		// GI
 		app.GI()
-
 	}
 	tpl := tpls.MicroProvider{MicroList: microList}
 	buf, err := tpl.Execute()
@@ -99,6 +107,26 @@ func generate(cmd *cobra.Command, args []string) {
 		// Proto 生成
 		app.Protoc()
 	}
+}
+
+func addMs(cmd *cobra.Command, args []string) {
+	_project()
+	if len(args) < 1 {
+		log.Fatalf("请输入模块名 ")
+		return
+	}
+	name := args[0]
+	project.AddMicro(name)
+}
+
+func addBff(cmd *cobra.Command, args []string) {
+	_project()
+	if len(args) < 1 {
+		log.Fatalf("请输入BFF名 ")
+		return
+	}
+	name := args[0]
+	project.AddMicro(name)
 }
 
 func sql(cmd *cobra.Command, args []string) {
