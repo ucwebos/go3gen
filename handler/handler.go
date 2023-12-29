@@ -126,7 +126,7 @@ func addBff(cmd *cobra.Command, args []string) {
 		return
 	}
 	name := args[0]
-	project.AddMicro(name)
+	project.AddBFF(name)
 }
 
 func sql(cmd *cobra.Command, args []string) {
