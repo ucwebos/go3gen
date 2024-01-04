@@ -40,18 +40,18 @@ func {{.Name}}List(ctx *gin.Context) {
 	)
 	_buf, err := ctx.GetRawData()
 	if err != nil {
-		types.JSONError(ctx, 501, err.Error())
+		types.JSONError(ctx, types.ErrorParams, err.Error())
 		return
 	}
 	err = tools.JSON.Unmarshal(_buf, &req)
 	if err != nil {
-		types.JSONError(ctx, 501, err.Error())
+		types.JSONError(ctx, types.ErrorParams, err.Error())
 		return
 	}
 
 	list, total, err := repo.{{.Name}}RepoInstance().Query(ctx, req.Form.ToFilteringList(), nil)
 	if err != nil {
-		types.JSONError(ctx, 500, err.Error())
+		types.JSONError(ctx, types.ErrorSys, err.Error())
 		return
 	}
 	resp.Records = list
@@ -80,18 +80,18 @@ func {{.Name}}Add(ctx *gin.Context) {
 	)
 	_buf, err := ctx.GetRawData()
 	if err != nil {
-		types.JSONError(ctx, 501, err.Error())
+		types.JSONError(ctx, types.ErrorParams, err.Error())
 		return
 	}
 	err = tools.JSON.Unmarshal(_buf, &req)
 	if err != nil {
-		types.JSONError(ctx, 501, err.Error())
+		types.JSONError(ctx, types.ErrorParams, err.Error())
 		return
 	}
 
 	rs, err := repo.{{.Name}}RepoInstance().Create(ctx, req.ToEntity())
 	if err != nil {
-		types.JSONError(ctx, 500, err.Error())
+		types.JSONError(ctx, types.ErrorSys, err.Error())
 		return
 	}
 	resp.Target = rs
@@ -117,27 +117,27 @@ func {{.Name}}Edit(ctx *gin.Context) {
 	)
 	_buf, err := ctx.GetRawData()
 	if err != nil {
-		types.JSONError(ctx, 501, err.Error())
+		types.JSONError(ctx, types.ErrorParams, err.Error())
 		return
 	}
 	err = tools.JSON.Unmarshal(_buf, &req)
 	if err != nil {
-		types.JSONError(ctx, 501, err.Error())
+		types.JSONError(ctx, types.ErrorParams, err.Error())
 		return
 	}
 	rs := req.ToEntity()
 	old, err := repo.{{.Name}}RepoInstance().GetByID(ctx, rs.ID)
 	if err != nil {
-		types.JSONError(ctx, 500, err.Error())
+		types.JSONError(ctx, types.ErrorSys, err.Error())
 		return
 	}
 	if old == nil {
-		types.JSONError(ctx, 501, "not found")
+		types.JSONError(ctx, types.ErrorParams, "not found")
 		return
 	}
 	rs, err = repo.{{.Name}}RepoInstance().Save(ctx, rs)
 	if err != nil {
-		types.JSONError(ctx, 500, err.Error())
+		types.JSONError(ctx, types.ErrorSys, err.Error())
 		return
 	}
 	resp.Target = rs
@@ -158,17 +158,17 @@ func {{.Name}}Delete(ctx *gin.Context) {
 	)
 	_buf, err := ctx.GetRawData()
 	if err != nil {
-		types.JSONError(ctx, 501, err.Error())
+		types.JSONError(ctx, types.ErrorParams, err.Error())
 		return
 	}
 	err = tools.JSON.Unmarshal(_buf, &req)
 	if err != nil {
-		types.JSONError(ctx, 501, err.Error())
+		types.JSONError(ctx, types.ErrorParams, err.Error())
 		return
 	}
 	err = repo.{{.Name}}RepoInstance().DeleteByID(ctx, req.ID)
 	if err != nil {
-		types.JSONError(ctx, 500, err.Error())
+		types.JSONError(ctx, types.ErrorSys, err.Error())
 		return
 	}
 	types.JSONSuccess(ctx, resp)
