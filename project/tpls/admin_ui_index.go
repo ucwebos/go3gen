@@ -1,7 +1,6 @@
 package tpls
 
-const AdminUIIndex = `
-<template>
+const AdminUIIndex = `<template>
   <fs-page>
     <fs-crud ref="crudRef" v-bind="crudBinding" />
   </fs-page>
@@ -14,12 +13,10 @@ import createCrudOptions from "./crud";
 
 //此处为组件定义
 export default defineComponent({
-  name: "{{.NameVal}}",
+  name: "{{.Group}}{{.Name}}",
   setup(props: any, ctx: any) {
     const context: any = { props, ctx }; // 自定义变量, 将会传递给createCrudOptions, 比如直接把props,和ctx直接传过去使用
-    function onExpose(e: OnExposeContext) {
-      
-    } //将在createOptions之前触发，可以获取到crudExpose,和context
+    function onExpose(e: OnExposeContext) {} //将在createOptions之前触发，可以获取到crudExpose,和context
     const { crudRef, crudBinding, crudExpose } = useFs({ createCrudOptions, onExpose, context });
     // 页面打开后获取列表数据
     onMounted(() => {

@@ -81,6 +81,7 @@ func (a *AdminGroup) ToTpl() *tpls.AdminGroup {
 			}
 			tg.CrudList = append(tg.CrudList, tpls.CrudItem{
 				ApiBaseURL: "/micro/" + tg.Name,
+				Group:      tool_str.ToUFirst(tg.Name),
 				Name:       it.Entity,
 				NameVal:    tool_str.ToSnakeCase(it.Entity),
 				Title:      it.Title,
@@ -112,7 +113,7 @@ func (a *AdminGroup) adminAPI(tg *tpls.AdminGroup) {
 }
 
 func (a *AdminGroup) adminRoute(tg *tpls.AdminGroup) {
-	routeFile := path.Join(a.AdminRoot, a.Name, "routes.ts")
+	routeFile := path.Join(a.AdminRoot, a.Name, "route.ts")
 	buf, err := tg.Execute(tpls.AdminRouteTpl)
 	if err != nil {
 		panic(err)

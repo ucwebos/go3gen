@@ -16,21 +16,22 @@ const AdminRouteTpl = `export default [
     },
     path: "/micro/{{.NameVal}}",
     redirect: "/micro/{{.NameVal}}",
-	children: [
+    children: [
   {{- range .CrudList}}
-		{
-			title: "{{.Title}}",
-			name: "{{$.Name}}{{.Name}}",
-			path: "/micro/{{$.NameVal}}/{{.NameVal}}",
-			meta: {
-				icon: "{{.Icon}}"
-			},
-			component: "/micro/{{$.NameVal}}/{{.NameVal}}/index.vue"
-		},
+      {
+        title: "{{.Title}}",
+        name: "{{$.Name}}{{.Name}}",
+        path: "/micro/{{$.NameVal}}/{{.NameVal}}",
+        meta: {
+          icon: "{{.Icon}}"
+        },
+        component: "/micro/{{$.NameVal}}/{{.NameVal}}/index.vue"
+      },
   {{- end}}
-	]
+    ]
   }
-]`
+];
+`
 
 type AdminRoutes struct {
 	Groups []AdminGroup
@@ -46,6 +47,7 @@ type AdminGroup struct {
 
 type CrudItem struct {
 	ApiBaseURL string
+	Group      string
 	Name       string
 	NameVal    string
 	Title      string
