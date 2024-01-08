@@ -334,7 +334,7 @@ func MainFunDoc(pwd string) (string, error) {
 	return "", nil
 }
 
-func MicroEntryDoc(pwd string) (string, error) {
+func MicroEntryDoc(pwd string, genFunName string) (string, error) {
 	r, err := os.Open(pwd)
 	if err != nil {
 		return "", err
@@ -347,10 +347,7 @@ func MicroEntryDoc(pwd string) (string, error) {
 	for _, decl := range f.Decls {
 		switch x := decl.(type) {
 		case *ast.FuncDecl:
-			if x.Recv == nil && x.Name.Name == "_gen" {
-				return x.Doc.Text(), nil
-			}
-			if x.Recv == nil && x.Name.Name == "_wsGen" {
+			if x.Recv == nil && x.Name.Name == genFunName {
 				return x.Doc.Text(), nil
 			}
 		}

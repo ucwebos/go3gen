@@ -78,6 +78,8 @@ type HttpEntry struct {
 	EntryName    string
 	EntryPath    string
 	EntryPkgPath string
+	SocketType   string
+	SocketTypeUF string
 	Groups       []*EntryGroup
 }
 

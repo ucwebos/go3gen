@@ -235,7 +235,7 @@ func (a *App) _cHttpDocs(ef tpls.HttpEntry) {
 
 func (a *App) CHandlerAndDoc() {
 	for _, tf := range a.typesGenFiles() {
-		remark, err := parser.MicroEntryDoc(path.Join(tf.Entry, "route", "routes.go"))
+		remark, err := parser.MicroEntryDoc(path.Join(tf.Entry, "route", "routes.go"), "_gen")
 		if err == nil && remark != "" {
 			groups := a.BizEntryDocParse(tf.EntryName, remark, false)
 			_tp := tpls.HttpEntry{
@@ -266,36 +266,43 @@ func (a *App) CHandlerAndDoc() {
 	}
 }
 
-func (a *App) CWsHandlerAndDoc() {
+func (a *App) CSocketHandlerAndDoc() {
 	for _, tf := range a.typesGenFiles() {
-		remark, err := parser.MicroEntryDoc(path.Join(tf.Entry, "route", "ws_routes.go"))
-		if err == nil && remark != "" {
-			groups := a.BizEntryDocParse(tf.EntryName, remark, true)
-			_tp := tpls.HttpEntry{
-				Project:      cfg.C.Project,
-				AppName:      a.Name,
-				AppNameUF:    tool_str.ToUFirst(a.Name),
-				AppPkgPath:   a.appPkgPath(),
-				EntryPath:    tf.Entry,
-				EntryPkgPath: tf.EntryPkgPath,
-				EntryName:    tf.EntryName,
-				Groups:       groups,
+		for _, socketType := range []string{
+			"default", "temporary",
+		} {
+			remark, err := parser.MicroEntryDoc(path.Join(tf.Entry, "route", fmt.Sprintf("soc_%s_routes.go", socketType)), fmt.Sprintf("_gen%s", tool_str.ToUFirst(socketType)))
+			if err == nil && remark != "" {
+				groups := a.BizEntryDocParse(tf.EntryName, remark, true)
+				_tp := tpls.HttpEntry{
+					Project:      cfg.C.Project,
+					AppName:      a.Name,
+					AppNameUF:    tool_str.ToUFirst(a.Name),
+					AppPkgPath:   a.appPkgPath(),
+					EntryPath:    tf.Entry,
+					EntryPkgPath: tf.EntryPkgPath,
+					EntryName:    tf.EntryName,
+					SocketType:   socketType,
+					SocketTypeUF: tool_str.ToUFirst(socketType),
+					Groups:       groups,
+				}
+				buf, err := _tp.Execute(tpls.SocketRouteTpl)
+				if err != nil {
+					panic(err)
+				}
+				filename := path.Join(tf.Entry, "route", fmt.Sprintf("soc_%s_routes_gen.go", socketType))
+				buf = a.format(buf, filename)
+				log.Printf("gen socket routes file %s \n", filename)
+				err = tool_file.WriteFile(filename, buf)
+				if err != nil {
+					return
+				}
+				a._cHandler(_tp)
+				a._cHttpTypes(_tp)
+				a._cHttpDocs(_tp)
 			}
-			buf, err := _tp.Execute(tpls.WsRouteTpl)
-			if err != nil {
-				panic(err)
-			}
-			filename := path.Join(tf.Entry, "route", "ws_routes_gen.go")
-			buf = a.format(buf, filename)
-			log.Printf("gen routes file %s \n", filename)
-			err = tool_file.WriteFile(filename, buf)
-			if err != nil {
-				return
-			}
-			a._cHandler(_tp)
-			a._cHttpTypes(_tp)
-			a._cHttpDocs(_tp)
 		}
+
 	}
 }
 
@@ -312,7 +319,7 @@ var (
 	handlerMiddleExp = regexp.MustCompile(`@M\(([\w|,|\(|\)]+)\)`)
 )
 
-func (a *App) BizEntryDocParse(entryName string, doc string, ws bool) []*tpls.EntryGroup {
+func (a *App) BizEntryDocParse(entryName string, doc string, socket bool) []*tpls.EntryGroup {
 	groups := make([]*tpls.EntryGroup, 0)
 	lines := strings.Split(doc, "\n")
 	for _, line := range lines {
@@ -352,8 +359,8 @@ func (a *App) BizEntryDocParse(entryName string, doc string, ws bool) []*tpls.En
 				URI:         fmt.Sprintf("/%s/%s/%s", entryName, groupURIName, m),
 				URI2:        fmt.Sprintf("/%s/%s", groupURIName, m),
 			}
-			if ws {
-				item.URI = fmt.Sprintf("%s.%s.%s", entryName, group.Group, m)
+			if socket {
+				item.URI = fmt.Sprintf("%s.%s", group.Group, m)
 			}
 			rm := handlerMiddleExp.FindStringSubmatch(line)
 			if len(rm) == 2 {

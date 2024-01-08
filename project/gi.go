@@ -54,7 +54,7 @@ func (a *App) _gi(iParser *parser.IParser) {
 
 func (a *App) MicroFun() bool {
 	// 读取micro 入口配置
-	doc, err := parser.MicroEntryDoc(path.Join(a.Path, "entry.go"))
+	doc, err := parser.MicroEntryDoc(path.Join(a.Path, "entry.go"), "_gen")
 	if err == nil && doc != "" {
 		items := a.MicroEntryDocParse(doc)
 		tpl := tpls.MicroEntry{
