@@ -57,6 +57,7 @@ import "{{.Project}}/micro/{{.Name}}/config"
 
 func Init() {
 	config.MustInit()
+	// provider.Register{{.NameUF}}(New{{.NameUF}}())
 }
 
 // Test 测试方法 [{{.NameUF}}.Test]
