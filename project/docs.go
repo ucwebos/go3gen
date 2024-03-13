@@ -99,6 +99,9 @@ func (a *App) toDocsItemFields(fields map[string]parser.XField, structList map[s
 		if j != nil {
 			name = prefix + strings.ReplaceAll(j.Name, ",omitempty", "")
 		}
+		if j.Txt == "-" {
+			continue
+		}
 		_type := field.Type
 		switch field.SType {
 		case parser.STypeStruct:
