@@ -204,7 +204,6 @@ func (a *App) _cHttpDocs(ef tpls.HttpEntry) {
 			}
 		}
 	}
-
 	for _, group := range ef.Groups {
 		groupURIName := strings.ReplaceAll(tool_str.ToSnakeCase(group.Group), "_", "-")
 		dir := path.Join(cfg.C.RootPath, "panel", "docs", a.Name, ef.EntryName, groupURIName)
@@ -216,7 +215,7 @@ func (a *App) _cHttpDocs(ef tpls.HttpEntry) {
 			a.docsItem(dir, fun, ips.StructList)
 		}
 	}
-	filename := path.Join(cfg.C.RootPath, "panel", "docs", a.Name, ef.EntryName, "_sidebar.md")
+	filename := path.Join(cfg.C.RootPath, "panel", "docs", a.Name, "_sidebar.md")
 	sider, err := os.ReadFile(filename)
 	siderStr := string(sider)
 	idx1 := strings.Index(siderStr, "---")

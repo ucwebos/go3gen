@@ -39,10 +39,13 @@ type {{$.SocketTypeUF}}{{$x.GroupUFirst}} struct {
 			resp = &types.{{$it.RespName}}{}
 			err error
 		)
-		_common,err := authority(sess);
+		// 前置处理
+		release, _common, err := middleware.SocBefore(ctx,"{{$.SocketType}}.{{$it.URI}}",sess);
 		if err != nil {
 			return nil, err
 		}
+		defer release()
+		ctx = context.WithValue(ctx, common.IOCommonParamsKey, _common)
 		ctx, span := tracing.StartSpan(ctx, "socket:{{$.SocketType}}.{{$it.URI}}")
 		defer func() {
 			span.End()
