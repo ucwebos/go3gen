@@ -10,7 +10,6 @@ const AdminAPIItemTpl = `package {{.PkgName}}
 import (
 	"github.com/gin-gonic/gin"
 
-	"{{.Project}}/common/tools"
 	"{{.Project}}/panel/types"
 	
 	"{{.Project}}/micro/{{.AppName}}/entity"
@@ -38,13 +37,7 @@ func {{.Name}}List(ctx *gin.Context) {
 		req  = &{{.Name}}ListReq{}
 		resp = &{{.Name}}ListResp{}
 	)
-	_buf, err := ctx.GetRawData()
-	if err != nil {
-		types.JSONError(ctx, types.ErrorParams, err.Error())
-		return
-	}
-	err = tools.JSON.Unmarshal(_buf, &req)
-	if err != nil {
+	if err := types.BindBody(ctx, &req); err != nil {
 		types.JSONError(ctx, types.ErrorParams, err.Error())
 		return
 	}
@@ -78,13 +71,7 @@ func {{.Name}}Add(ctx *gin.Context) {
 		req  = &{{.Name}}AddReq{}
 		resp = &{{.Name}}AddResp{}
 	)
-	_buf, err := ctx.GetRawData()
-	if err != nil {
-		types.JSONError(ctx, types.ErrorParams, err.Error())
-		return
-	}
-	err = tools.JSON.Unmarshal(_buf, &req)
-	if err != nil {
+	if err := types.BindBody(ctx, &req); err != nil {
 		types.JSONError(ctx, types.ErrorParams, err.Error())
 		return
 	}
@@ -115,13 +102,7 @@ func {{.Name}}Edit(ctx *gin.Context) {
 		req  = &{{.Name}}EditReq{}
 		resp = &{{.Name}}EditResp{}
 	)
-	_buf, err := ctx.GetRawData()
-	if err != nil {
-		types.JSONError(ctx, types.ErrorParams, err.Error())
-		return
-	}
-	err = tools.JSON.Unmarshal(_buf, &req)
-	if err != nil {
+	if err := types.BindBody(ctx, &req); err != nil {
 		types.JSONError(ctx, types.ErrorParams, err.Error())
 		return
 	}
@@ -156,17 +137,11 @@ func {{.Name}}Delete(ctx *gin.Context) {
 		req  = &{{.Name}}DeleteReq{}
 		resp = &{{.Name}}DeleteResp{}
 	)
-	_buf, err := ctx.GetRawData()
-	if err != nil {
+	if err := types.BindBody(ctx, &req); err != nil {
 		types.JSONError(ctx, types.ErrorParams, err.Error())
 		return
 	}
-	err = tools.JSON.Unmarshal(_buf, &req)
-	if err != nil {
-		types.JSONError(ctx, types.ErrorParams, err.Error())
-		return
-	}
-	err = repo.{{.Name}}RepoInstance().DeleteByID(ctx, req.ID)
+	err := repo.{{.Name}}RepoInstance().DeleteByID(ctx, req.ID)
 	if err != nil {
 		types.JSONError(ctx, types.ErrorSys, err.Error())
 		return
