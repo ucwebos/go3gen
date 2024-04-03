@@ -43,7 +43,7 @@ func (a *App) scanEntity() *parser.IParser {
 	return ipr
 }
 func (a *App) scanDo() *parser.IParser {
-	ipr, err := parser.Scan(path.Join(a.Path, "repo", "dbal", "do"), parser.ParseTypeWatch)
+	ipr, err := parser.Scan(path.Join(a.Path, "repo", "dbal", "do"), parser.ParseTypeDo)
 	if err != nil {
 		log.Fatalf("EntityTypeDef: parse dir[%s], err: %v", path.Join(a.Path, "entity"), err)
 	}
@@ -96,6 +96,9 @@ func (a *App) doTypeDefGenFile() string {
 
 func (a *App) doGenFile() string {
 	return path.Join(a.Path, "repo", "dbal", "do", "do_gen.go")
+}
+func (a *App) doTableNameFile() string {
+	return path.Join(a.Path, "repo", "dbal", "do", "tables.go")
 }
 
 func (a *App) doConverterGenFile() string {

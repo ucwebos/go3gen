@@ -70,7 +70,6 @@ func (s *{{$.AppNameUF}}){{.FunName}}(ctx context.Context, input *types_{{$.AppN
 			"func":   "{{.FunName}}",
 			"ret":    prometheus.RetLabel(err),
 		}, st)
-		//log.With().TraceID(ctx).Field("req", input).Field("resp", resp).Field("err", err).Debug("on-micro")
 	}()
 	
 	resp, err = service.{{.Service}}Instance().{{.Method}}(ctx,input)

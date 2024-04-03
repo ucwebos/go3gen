@@ -129,8 +129,7 @@ func (impl *{{.EntityName}}RepoDBAL) NewUpdateSession(ctx context.Context) *gorm
 
 func (impl *{{.EntityName}}RepoDBAL) NewCreateSession(ctx context.Context) *gorm.DB {
 	session := config.GetDB().NewSession(ctx)
-	// todo 是否分库和分表，规则等
-	session = session.Table("{{.TableName}}")
+	session = session.Table(do.TableName{{.EntityName}}Do)
 	return session
 }
 

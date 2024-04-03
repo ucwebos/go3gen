@@ -93,10 +93,31 @@ func (a *App) edo(xstList []parser.XST) {
 	log.Printf("gen do file %s \n", filename)
 }
 
+func (a *App) genTableName(constStrs map[string]string, xstList []parser.XST) {
+	tableNameBuf := `package do
+
+`
+	for _, xst := range xstList {
+		if v, ok := constStrs["TableName"+xst.Name]; ok {
+			tableNameBuf += fmt.Sprintf("const TableName%s = \"%s\"\n", xst.Name, v)
+		} else {
+			tab, _ := strings.CutSuffix(xst.Name, "Do")
+			tableNameBuf += fmt.Sprintf("const TableName%s = \"%s\"\n", xst.Name, tool_str.ToSnakeCase(tab))
+		}
+	}
+	if err := tool_file.WriteFile(a.doTableNameFile(), []byte(tableNameBuf)); err != nil {
+		return
+	}
+}
+
 func (a *App) doNext() {
 	// 解析 do
 	ipr := a.scanDo()
 	xstList := ipr.GetStructList()
+
+	// 生成表名
+	a.genTableName(ipr.ConstStrList, xstList)
+
 	// 生成 type_def
 	buf := []byte(fmt.Sprintf(tpls.EntityTypeDefCodes, "do", cfg.C.Project, cfg.C.Project))
 	for _, xst := range xstList {
