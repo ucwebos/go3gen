@@ -15,7 +15,6 @@ import (
 func (a *AdminGroup) GenUI() {
 	tg := a.ToTpl()
 	// API
-	a.adminAPI(tg)
 
 	// UI
 	a.adminUI(tg)
@@ -69,7 +68,6 @@ func (a *AdminGroup) ToTpl() *tpls.AdminGroup {
 				}
 				return false
 			})
-
 			for _, field := range fieldList {
 				jv := field.GetTag("json")
 				if jv != nil && jv.Name != "-" {
@@ -93,8 +91,8 @@ func (a *AdminGroup) ToTpl() *tpls.AdminGroup {
 	return tg
 }
 
-func (a *AdminGroup) adminAPI(tg *tpls.AdminGroup) {
-	dir := path.Join(cfg.C.RootPath, "panel", "admin", "micro", tg.Name)
+func (a *AdminGroup) AdminAPI(tg *tpls.AdminGroup) {
+	dir := path.Join(cfg.C.RootPath, "panel", "micro", tg.Name)
 	for _, item := range tg.CrudList {
 		_t := &tpls.AdminAPIItem{
 			Project: cfg.C.Project,
@@ -107,7 +105,9 @@ func (a *AdminGroup) adminAPI(tg *tpls.AdminGroup) {
 		if err != nil {
 			panic(err)
 		}
-		tool_file.WriteFile(path.Join(dir, item.NameVal+".go"), buf)
+		if !tool_file.Exists(path.Join(dir, item.NameVal+".go")) {
+			tool_file.WriteFile(path.Join(dir, item.NameVal+".go"), buf)
+		}
 	}
 
 }

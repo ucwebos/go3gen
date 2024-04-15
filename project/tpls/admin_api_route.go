@@ -9,9 +9,13 @@ const AdminAPIRouteTpl = `package micro
 
 import (
 	"github.com/gin-gonic/gin"
+
 {{- range .Groups}}
 	ms{{.Name}} "{{$.Project}}/micro/{{.Name}}"
-	"{{$.Project}}/panel/admin/micro/{{.Name}}"
+{{- end}}
+
+{{- range .Groups}}
+	"{{$.Project}}/panel/micro/{{.Name}}"
 {{- end}}
 )
 

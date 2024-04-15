@@ -135,6 +135,7 @@ func (ips *IParser) ParseFile(pwd string) error {
 					ImplINF    = ""
 					GIName     = ""
 					GI         = false
+					BCFG       = false
 					noDeleteAT = false
 				)
 				if x.Doc != nil && len(x.Doc.List) >= 0 {
@@ -157,6 +158,9 @@ func (ips *IParser) ParseFile(pwd string) error {
 							if len(r) > 1 {
 								GIName = r[1]
 							}
+						}
+						if strings.Contains(comment.Text, "@BCFG") {
+							BCFG = true
 						}
 					}
 				}
@@ -184,6 +188,7 @@ func (ips *IParser) ParseFile(pwd string) error {
 						xst := XST{
 							GIName:     GIName,
 							GI:         GI,
+							BCFG:       BCFG,
 							NoDeleteAT: noDeleteAT,
 							ImplINF:    ImplINF,
 							Imports:    imports,

@@ -16,8 +16,13 @@ import (
 
 func (a *App) _cRepo(xstList []parser.XST) {
 	entityList := make([]string, 0)
+	bcfgList := make([]string, 0)
 	hasIDMap := map[string]bool{}
 	for _, it := range xstList {
+		if it.BCFG {
+			bcfgList = append(bcfgList, it.Name)
+			continue
+		}
 		for _, field := range it.FieldList {
 			tag := field.GetTag("db")
 			if tag != nil && tag.Txt != "-" {
@@ -63,6 +68,29 @@ func (a *App) _cRepo(xstList []parser.XST) {
 		if !tool_file.Exists(filename) {
 			buf = a.format(buf, filename)
 			log.Printf("gen dbal file %s \n", filename)
+			err = tool_file.WriteFile(filename, buf)
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	for _, s := range bcfgList {
+		tpl := tpls.RepoBCFG{
+			ProjectName: cfg.C.Project,
+			AppPkgPath:  a.appPkgPath(),
+			EntityName:  s,
+			TableName:   tool_str.ToSnakeCase(s),
+		}
+		buf, err := tpl.Execute()
+		if err != nil {
+			log.Printf("gen RepoBCFG %s err: %v \n", s, err)
+			return
+		}
+		filename := path.Join(a.Path, "repo", fmt.Sprintf("%s_repo.go", tool_str.ToSnakeCase(s)))
+		if !tool_file.Exists(filename) {
+			buf = a.format(buf, filename)
+			log.Printf("gen repo file %s \n", filename)
 			err = tool_file.WriteFile(filename, buf)
 			if err != nil {
 				return

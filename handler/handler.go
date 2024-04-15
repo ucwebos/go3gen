@@ -156,53 +156,77 @@ func sql(cmd *cobra.Command, args []string) {
 	}
 }
 
+type ApiGroup struct {
+	Micro  string   `json:"micro"`
+	Entity []string `json:"entity"`
+}
+
 func admin(cmd *cobra.Command, args []string) {
 	_project()
 	var (
-		genGroups = make([]project.AdminGroup, 0)
+		genGroups = make([]*tpls.AdminGroup, 0)
 	)
-	cmdPath := path.Join(cfg.C.RootPath, "panel", "admin", "micro")
-	fileInfos, err := os.ReadDir(cmdPath)
+	genFile := path.Join(cfg.C.RootPath, "panel", "micro", "gen.json")
+	if !tool_file.Exists(genFile) {
+		log.Fatalf("genFile: %s not exists", genFile)
+		return
+	}
+	JSONBuf, err := os.ReadFile(genFile)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("genFile %s read err: %v", genFile, err)
+		return
 	}
-	for _, fi := range fileInfos {
-		if fi.IsDir() {
-			genFile := path.Join(cmdPath, fi.Name(), "gen.json")
-			if !tool_file.Exists(genFile) {
-				continue
-			}
-			JSONBuf, err := os.ReadFile(genFile)
-			if err != nil {
-				continue
-			}
-			group := project.AdminGroup{
-				Type:      project.TypeMicro,
-				Name:      fi.Name(),
-				Path:      path.Join(cfg.C.RootPath, "micro", fi.Name()),
-				AdminRoot: path.Join(cfg.C.AdminRoot, "src", "views", "micro"),
-			}
-			err = jsoniter.Unmarshal(JSONBuf, &group)
-			if err != nil {
-				continue
-			}
-			genGroups = append(genGroups, group)
+	groups := make([]ApiGroup, 0)
+	err = jsoniter.Unmarshal(JSONBuf, &groups)
+	if err != nil {
+		log.Fatalf("genFile %s unmarshal err: %v", genFile, err)
+		return
+	}
+	for _, group := range groups {
+		items := make([]tpls.CrudItem, 0)
+		for _, s := range group.Entity {
+			items = append(items, tpls.CrudItem{
+				Group:   tool_str.ToUFirst(group.Micro),
+				Name:    s,
+				NameVal: tool_str.ToSnakeCase(s),
+			})
 		}
+		genGroups = append(genGroups, &tpls.AdminGroup{
+			Name:     group.Micro,
+			NameVal:  tool_str.ToSnakeCase(group.Micro),
+			CrudList: items,
+		})
 	}
-	_tplGroups := make([]*tpls.AdminGroup, 0)
 	for _, group := range genGroups {
-		group.GenUI()
-		_tplGroups = append(_tplGroups, group.ToTpl())
+		adminAPI(group)
 	}
 	aaRoute := &tpls.AdminAPIRoute{
 		Project: cfg.C.Project,
-		Groups:  _tplGroups,
+		Groups:  genGroups,
 	}
 	buf, err := aaRoute.Execute()
 	if err != nil {
 		panic(err)
 	}
-	tool_file.WriteFile(path.Join(cfg.C.RootPath, "panel", "admin", "micro", "route.go"), buf)
+	tool_file.WriteFile(path.Join(cfg.C.RootPath, "panel", "micro", "route.go"), buf)
+}
+
+func adminAPI(tg *tpls.AdminGroup) {
+	dir := path.Join(cfg.C.RootPath, "panel", "micro", tg.Name)
+	for _, item := range tg.CrudList {
+		_t := &tpls.AdminAPIItem{
+			Project: cfg.C.Project,
+			AppName: tg.Name,
+			PkgName: tg.Name,
+			Name:    item.Name,
+			NameVal: item.NameVal,
+		}
+		buf, err := _t.Execute()
+		if err != nil {
+			panic(err)
+		}
+		tool_file.WriteFile(path.Join(dir, item.NameVal+".go"), buf)
+	}
 }
 
 func _project() {

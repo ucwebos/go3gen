@@ -49,8 +49,9 @@ func (x INF) Equal(x2 INF) bool {
 }
 
 type XST struct {
-	GIName     string // 自定义DI名
-	GI         bool   // 是否注册DI
+	GIName     string // 自定义GI名
+	GI         bool   // 是否生成GI
+	BCFG       bool   // 生产配置表实现
 	NoDeleteAT bool
 	ImplINF    string // 标注实现接口
 	Imports    []string
