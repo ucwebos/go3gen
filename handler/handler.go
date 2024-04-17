@@ -225,7 +225,9 @@ func adminAPI(tg *tpls.AdminGroup) {
 		if err != nil {
 			panic(err)
 		}
-		tool_file.WriteFile(path.Join(dir, item.NameVal+".go"), buf)
+		if !tool_file.Exists(path.Join(dir, item.NameVal+".go")) {
+			tool_file.WriteFile(path.Join(dir, item.NameVal+".go"), buf)
+		}
 	}
 }
 
