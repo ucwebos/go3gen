@@ -100,9 +100,8 @@ import (
 
 	"{{.AppPkgPath}}/config"
 	"{{.AppPkgPath}}/entity"
-	"{{.AppPkgPath}}/repo/dbal/converter"
-	"{{.AppPkgPath}}/repo/dbal/dao"
-	"{{.AppPkgPath}}/repo/dbal/do"
+	"{{.AppPkgPath}}/repo/converter"
+	"{{.AppPkgPath}}/repo/do"
 
 	"{{.ProjectName}}/common/lib/db"
 	"{{.ProjectName}}/common/tools/filterx"
@@ -110,13 +109,10 @@ import (
 
 // {{.EntityName}}RepoDBAL .
 type {{.EntityName}}RepoDBAL struct {
-	Dao *dao.{{.EntityName}}Dao
 }
 
 func New{{.EntityName}}RepoDBAL() *{{.EntityName}}RepoDBAL {
-	return &{{.EntityName}}RepoDBAL{
-		Dao: dao.New{{.EntityName}}Dao(),
-	}
+	return &{{.EntityName}}RepoDBAL{}
 }
 
 func (impl *{{.EntityName}}RepoDBAL) NewReadSession(ctx context.Context) *gorm.DB {
@@ -138,6 +134,30 @@ func (impl *{{.EntityName}}RepoDBAL) NewTransactionSession(ctx context.Context) 
 	return session
 }
 
+func (impl *{{.EntityName}}RepoDBAL) findPage(session *gorm.DB) (do.{{.EntityName}}DoList, int, error) {
+	result := make(do.{{.EntityName}}DoList, 0)
+	err := session.Find(&result).Error
+	if err != nil {
+		return nil, 0, errors.Wrapf(err, "{{.EntityName}} FindPage failed 数据库错误")
+	}
+	delete(session.Statement.Clauses, "LIMIT")
+	var count int64
+	err = session.Count(&count).Error
+	if err != nil {
+		return nil, 0, errors.Wrapf(err, "{{.EntityName}} FindPage failed 数据库错误")
+	}
+	return result, int(count), nil
+}
+
+func (impl *{{.EntityName}}RepoDBAL) findAll(session *gorm.DB) (do.{{.EntityName}}DoList, error) {
+	result := make(do.{{.EntityName}}DoList, 0)
+	err := session.Find(&result).Error
+	if err != nil {
+		return nil, errors.Wrapf(err, "{{.EntityName}} FindAll failed 数据库错误")
+	}
+	return result, nil
+}
+
 func (impl *{{.EntityName}}RepoDBAL) Query(ctx context.Context, query filterx.FilteringList, pg *filterx.Page) (entity.{{.EntityName}}List, int, error) {
 	session := impl.NewReadSession(ctx)
 	session, err := query.GormOption(session)
@@ -150,9 +170,9 @@ func (impl *{{.EntityName}}RepoDBAL) Query(ctx context.Context, query filterx.Fi
 		count  int
 	)
 	if noCount {
-		doList, err = impl.Dao.FindAll(session)
+		doList, err = impl.findAll(session)
 	} else {
-		doList, count, err = impl.Dao.FindPage(session)
+		doList, count, err = impl.findPage(session)
 	}
 	if err != nil {
 		return nil, 0, err
@@ -166,7 +186,12 @@ func (impl *{{.EntityName}}RepoDBAL) Count(ctx context.Context, query filterx.Fi
 	if err != nil {
 		return 0, err
 	}
-	return impl.Dao.Count(session)
+	var count int64
+	err = session.Count(&count).Error
+	if err != nil {
+		return 0, errors.Wrapf(err, "{{.EntityName}} Count failed 数据库错误")
+	}
+	return count, nil
 }
 
 func (impl *{{.EntityName}}RepoDBAL) QueryOne(ctx context.Context, query filterx.FilteringList) (*entity.{{.EntityName}}, error) {
@@ -175,9 +200,13 @@ func (impl *{{.EntityName}}RepoDBAL) QueryOne(ctx context.Context, query filterx
 	if err != nil {
 		return nil, err
 	}
-	_do, err := impl.Dao.Get(session)
+	_do := &do.{{.EntityName}}Do{}
+	err = session.First(_do).Error
 	if err != nil {
-		return nil, err
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, errors.Wrapf(err, "{{.EntityName}} QueryOne failed")
 	}
 	return converter.To{{.EntityName}}Entity(_do), nil
 }
@@ -185,9 +214,9 @@ func (impl *{{.EntityName}}RepoDBAL) QueryOne(ctx context.Context, query filterx
 func (impl *{{.EntityName}}RepoDBAL) Create(ctx context.Context, input *entity.{{.EntityName}}) (*entity.{{.EntityName}}, error) {
 	session := impl.NewCreateSession(ctx)
 	_do := converter.From{{.EntityName}}Entity(input)
-	err := impl.Dao.Create(session, _do)
+	err := session.Create(_do).Error
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "{{.EntityName}} Create failed")
 	}
 	output := converter.To{{.EntityName}}Entity(_do)
 	return output, err
@@ -196,9 +225,9 @@ func (impl *{{.EntityName}}RepoDBAL) Create(ctx context.Context, input *entity.{
 func (impl *{{.EntityName}}RepoDBAL) Save(ctx context.Context, input *entity.{{.EntityName}}) (*entity.{{.EntityName}}, error) {
 	session := impl.NewCreateSession(ctx)
 	_do := converter.From{{.EntityName}}Entity(input)
-	err := impl.Dao.Save(session, _do)
+	err := session.Save(_do).Error
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "{{.EntityName}} Save failed")
 	}
 	output := converter.To{{.EntityName}}Entity(_do)
 	return output, err
@@ -234,9 +263,9 @@ func (impl *{{.EntityName}}RepoDBAL) UpdateByQuery(ctx context.Context, query fi
 	if err != nil {
 		return err
 	}
-	err = impl.Dao.Update(session, updates)
+	err = session.Updates(updates).Error
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "{{.EntityName}} Update failed")
 	}
 	return err
 }
@@ -247,9 +276,9 @@ func (impl *{{.EntityName}}RepoDBAL) DeleteByQuery(ctx context.Context, query fi
 	if err != nil {
 		return err
 	}
-	err = impl.Dao.Delete(session)
-	if err != nil {
-		return err
+	err = session.Delete(&do.{{.EntityName}}Do{}).Error
+	if  err != nil {
+		return errors.Wrapf(err, "{{.EntityName}} Delete failed")
 	}
 	return err
 }
@@ -259,9 +288,13 @@ func (impl *{{.EntityName}}RepoDBAL) DeleteByQuery(ctx context.Context, query fi
 func (impl *{{.EntityName}}RepoDBAL) GetByID(ctx context.Context, id int64) (*entity.{{.EntityName}}, error) {
 	session := impl.NewReadSession(ctx)
 	session = session.Where("id = ?",id)
-	_do, err := impl.Dao.Get(session)
+	_do := &do.{{.EntityName}}Do{}
+	err := session.First(_do).Error
 	if err != nil {
-		return nil, err
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, errors.Wrapf(err, "{{.EntityName}} GetByID failed")
 	}
 	return converter.To{{.EntityName}}Entity(_do), nil
 }
@@ -269,7 +302,7 @@ func (impl *{{.EntityName}}RepoDBAL) GetByID(ctx context.Context, id int64) (*en
 func (impl *{{.EntityName}}RepoDBAL) GetListByIDs(ctx context.Context, ids []int64) (entity.{{.EntityName}}List, error) {
 	session := impl.NewReadSession(ctx)
 	session = session.Where("id in ?", ids)
-	_doList, err := impl.Dao.FindAll(session)
+	_doList, err := impl.findAll(session)
 	if err != nil {
 		return nil, err
 	}
@@ -279,9 +312,9 @@ func (impl *{{.EntityName}}RepoDBAL) GetListByIDs(ctx context.Context, ids []int
 func (impl *{{.EntityName}}RepoDBAL) UpdateByID(ctx context.Context, id int64, updates map[string]any) error {
 	session := impl.NewUpdateSession(ctx)
 	session = session.Where("id = ?",id)
-	err := impl.Dao.Update(session, updates)
+	err := session.Updates(updates).Error
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "{{.EntityName}} UpdateByID failed")
 	}
 	return err
 }
@@ -289,9 +322,9 @@ func (impl *{{.EntityName}}RepoDBAL) UpdateByID(ctx context.Context, id int64, u
 func (impl *{{.EntityName}}RepoDBAL) UpdateByIDs(ctx context.Context, ids []int64, updates map[string]any) error {
 	session := impl.NewUpdateSession(ctx)
 	session = session.Where("id in ?",ids)
-	err := impl.Dao.Update(session, updates)
+	err := session.Updates(updates).Error
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "{{.EntityName}} UpdateByIDs failed")
 	}
 	return err
 }
@@ -299,9 +332,9 @@ func (impl *{{.EntityName}}RepoDBAL) UpdateByIDs(ctx context.Context, ids []int6
 func (impl *{{.EntityName}}RepoDBAL) DeleteByID(ctx context.Context, id int64) error {
 	session := impl.NewUpdateSession(ctx)
 	session = session.Where("id = ?",id)
-	err := impl.Dao.Delete(session)
-	if err != nil {
-		return err
+	err := session.Delete(&do.{{.EntityName}}Do{}).Error
+	if  err != nil {
+		return errors.Wrapf(err, "{{.EntityName}} DeleteByID failed")
 	}
 	return err
 }
@@ -309,9 +342,9 @@ func (impl *{{.EntityName}}RepoDBAL) DeleteByID(ctx context.Context, id int64) e
 func (impl *{{.EntityName}}RepoDBAL) DeleteByIDs(ctx context.Context, ids []int64) error {
 	session := impl.NewUpdateSession(ctx)
 	session = session.Where("id in ?", ids)
-	err := impl.Dao.Delete(session)
-	if err != nil {
-		return err
+	err := session.Delete(&do.{{.EntityName}}Do{}).Error
+	if  err != nil {
+		return errors.Wrapf(err, "{{.EntityName}} DeleteByID failed")
 	}
 	return err
 }

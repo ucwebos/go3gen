@@ -67,7 +67,7 @@ func (a *App) edo(xstList []parser.XST) {
 			fmt.Sprintf("%s/common/core/log", cfg.C.Project),
 			fmt.Sprintf("%s/common/tools/tool_time", cfg.C.Project),
 			fmt.Sprintf("%s/entity", a.appPkgPath()),
-			fmt.Sprintf("%s/repo/dbal/do", a.appPkgPath()),
+			fmt.Sprintf("%s/repo/do", a.appPkgPath()),
 		})
 	)
 	for _, xst := range xstList {
@@ -135,22 +135,22 @@ func (a *App) doNext() {
 	}
 	log.Printf("gen type_def file %s \n", filename)
 
-	// 生成dao
-	buf = []byte(fmt.Sprintf(tpls.DaoHeaderCodes, "dao", a.appPkgPath()))
-	for _, xst := range xstList {
-		_b, err := a._dao(xst)
-		if err != nil {
-			log.Fatal(err)
-		}
-		buf = append(buf, _b...)
-	}
-	filename = a.doDaoGenFile()
-	buf = a.format(buf, filename)
-	err = tool_file.WriteFile(filename, buf)
-	if err != nil {
-		log.Printf("dao gen [%s] write file err: %v \n", filename, err)
-	}
-	log.Printf("gen dao file %s \n", filename)
+	//// 生成dao
+	//buf = []byte(fmt.Sprintf(tpls.DaoHeaderCodes, "dao", a.appPkgPath()))
+	//for _, xst := range xstList {
+	//	_b, err := a._dao(xst)
+	//	if err != nil {
+	//		log.Fatal(err)
+	//	}
+	//	buf = append(buf, _b...)
+	//}
+	//filename = a.doDaoGenFile()
+	//buf = a.format(buf, filename)
+	//err = tool_file.WriteFile(filename, buf)
+	//if err != nil {
+	//	log.Printf("dao gen [%s] write file err: %v \n", filename, err)
+	//}
+	//log.Printf("gen dao file %s \n", filename)
 }
 
 func (a *App) modulesTypes(tf typesGenFile) {
@@ -577,36 +577,6 @@ func (a *App) _do(xst parser.XST) ([]byte, []byte, error) {
 	}
 
 	return buf, buf2, nil
-}
-
-func (a *App) _dao(xst parser.XST) ([]byte, error) {
-	var (
-		pkName = ""
-		pkType = ""
-		pkCol  = ""
-	)
-	for _, field := range xst.FieldList {
-		tag := field.GetTag("gorm")
-		if tag != nil && strings.Contains(tag.Txt, "primaryKey") {
-			pkName = field.Name
-			pkType = field.Type
-			pkCol = tag.Name
-		}
-	}
-	tGen := tpls.Dao{
-		EntityName:     xst.Name,
-		DaoName:        strings.TrimSuffix(xst.Name, "Do") + "Dao",
-		EntityListName: fmt.Sprintf("%sList", xst.Name),
-		TableName:      fmt.Sprintf("do.TableName%s", xst.Name),
-		PkName:         pkName,
-		PkType:         pkType,
-		PkCol:          pkCol,
-	}
-	buf, err := tGen.Execute()
-	if err != nil {
-		return buf, err
-	}
-	return buf, nil
 }
 
 func (a *App) _typedef(xst parser.XST) ([]byte, error) {

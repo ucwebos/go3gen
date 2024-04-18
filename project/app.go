@@ -43,7 +43,7 @@ func (a *App) scanEntity() *parser.IParser {
 	return ipr
 }
 func (a *App) scanDo() *parser.IParser {
-	ipr, err := parser.Scan(path.Join(a.Path, "repo", "dbal", "do"), parser.ParseTypeDo)
+	ipr, err := parser.Scan(path.Join(a.Path, "repo", "do"), parser.ParseTypeDo)
 	if err != nil {
 		log.Fatalf("EntityTypeDef: parse dir[%s], err: %v", path.Join(a.Path, "entity"), err)
 	}
@@ -91,22 +91,18 @@ func (a *App) entityTypeDefGenFile() string {
 }
 
 func (a *App) doTypeDefGenFile() string {
-	return path.Join(a.Path, "repo", "dbal", "do", "type_def_code_gen.go")
+	return path.Join(a.Path, "repo", "do", "type_def_code_gen.go")
 }
 
 func (a *App) doGenFile() string {
-	return path.Join(a.Path, "repo", "dbal", "do", "do_gen.go")
+	return path.Join(a.Path, "repo", "do", "do_gen.go")
 }
 func (a *App) doTableNameFile() string {
-	return path.Join(a.Path, "repo", "dbal", "do", "tables.go")
+	return path.Join(a.Path, "repo", "do", "tables.go")
 }
 
 func (a *App) doConverterGenFile() string {
-	return path.Join(a.Path, "repo", "dbal", "converter", "converter_gen.go")
-}
-
-func (a *App) doDaoGenFile() string {
-	return path.Join(a.Path, "repo", "dbal", "dao", "dao_gen.go")
+	return path.Join(a.Path, "repo", "converter", "converter_gen.go")
 }
 
 func (a *App) typesGenFiles() []typesGenFile {

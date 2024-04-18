@@ -7,7 +7,6 @@ import (
 	"github.com/xbitgo/core/tools/tool_file"
 	"github.com/xbitgo/core/tools/tool_str"
 	"log"
-	"os"
 	"path"
 	"sort"
 )
@@ -15,9 +14,6 @@ import (
 func (a *AdminGroup) GenUI() {
 	tg := a.ToTpl()
 	// API
-
-	// UI
-	a.adminUI(tg)
 
 	// route
 	a.adminRoute(tg)
@@ -119,35 +115,4 @@ func (a *AdminGroup) adminRoute(tg *tpls.AdminGroup) {
 		panic(err)
 	}
 	tool_file.WriteFile(routeFile, buf)
-}
-
-func (a *AdminGroup) adminUI(tg *tpls.AdminGroup) {
-	for _, item := range tg.CrudList {
-		dir := path.Join(a.AdminRoot, a.Name, item.NameVal)
-		os.MkdirAll(dir, 0777)
-		// api
-		filename := path.Join(dir, "api.ts")
-		buf, err := item.Execute(tpls.AdminUIApiTpl)
-		if err != nil {
-			panic(err)
-		}
-		tool_file.WriteFile(filename, buf)
-
-		// crud
-		filename = path.Join(dir, "crud.ts")
-		buf, err = item.Execute(tpls.AdminUICrud)
-		if err != nil {
-			panic(err)
-		}
-		tool_file.WriteFile(filename, buf)
-
-		//
-		filename = path.Join(dir, "index.vue")
-		buf, err = item.Execute(tpls.AdminUIIndex)
-		if err != nil {
-			panic(err)
-		}
-		tool_file.WriteFile(filename, buf)
-	}
-
 }

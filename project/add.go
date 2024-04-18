@@ -20,10 +20,9 @@ func AddMicro(name string) {
 	for _, item := range []string{
 		"config",
 		"entity",
-		"repo/dbal/converter",
-		"repo/dbal/dao",
-		"repo/dbal/do",
-		"repo/dbal/sql",
+		"repo/converter",
+		"repo/do",
+		"repo/sql",
 		"service",
 		fmt.Sprintf("types_%s", name),
 	} {
