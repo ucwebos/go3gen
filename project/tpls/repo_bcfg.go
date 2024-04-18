@@ -25,13 +25,42 @@ import (
 // {{.EntityName}}Repo . @GI
 type {{.EntityName}}Repo struct {
 	Table string
+	mux sync.Mutex
+	memCache entity.{{.EntityName}}List
 }
 
 func New{{.EntityName}}Repo() *{{.EntityName}}Repo {
-	return &{{.EntityName}}Repo{
+	r := &{{.EntityName}}Repo{
+		memCache: entity.{{.EntityName}}List{},
+		mux: sync.Mutex{},
 		Table: "{{.TableName}}",
 	}
+	go func() {
+		tick := time.NewTicker(5 * time.Second)
+		for range tick.C {
+			r.loadCache()
+		}
+	}()
+	return r
 }
+
+func (r *NameRepo) loadCache() {
+	r.mux.Lock()
+	defer r.mux.Unlock()
+	list, _, err := r.Query(context.Background(), nil, nil)
+	if err != nil {
+		return
+	}
+	r.memCache = list
+}
+
+func (r *NameRepo) GetCaches() entity.{{.EntityName}}List {
+	if r.memCache == nil || len(r.memCache) == 0 {
+		r.loadCache()
+    }
+	return r.memCache
+}
+
 
 func (r *{{.EntityName}}Repo) Query(ctx context.Context, query filterx.FilteringList, pg *filterx.Page) (entity.{{.EntityName}}List, int, error) {
 	var rs = make(entity.{{.EntityName}}List, 0)
