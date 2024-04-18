@@ -16,7 +16,7 @@ import (
 func (a *App) GenSql(dsn string) {
 	var (
 		db    = utils.GetDB(dsn)
-		doDir = path.Join(a.Path, "repo", "dbal", "do")
+		doDir = path.Join(a.Path, "repo", "do")
 	)
 	ipr, err := parser.Scan(doDir, parser.ParseTypeDo)
 	if err != nil {
@@ -33,7 +33,7 @@ func (a *App) GenSql(dsn string) {
 }
 
 func (a *App) createTableSQL(db *utils.DB, tableName string, xst parser.XST) error {
-	filename := fmt.Sprintf("%s/%s_create.sql", path.Join(a.Path, "repo", "dbal", "sql"), tableName)
+	filename := fmt.Sprintf("%s/%s_create.sql", path.Join(a.Path, "repo", "sql"), tableName)
 	createSQL := db.TableCreateSQL(tableName)
 	if createSQL != "" {
 		tool_file.WriteFile(filename, []byte(createSQL))
@@ -109,7 +109,7 @@ func (a *App) modifySQL(db *utils.DB, tableName string, xst parser.XST) error {
 		}
 	}
 	if len(addColumns) > 0 {
-		filename := fmt.Sprintf("%s/%s_column_add_%s.sql", path.Join(a.Path, "repo", "dbal", "sql"), tableName, time.Now().Format("200601021504"))
+		filename := fmt.Sprintf("%s/%s_column_add_%s.sql", path.Join(a.Path, "repo", "sql"), tableName, time.Now().Format("200601021504"))
 		genSql.Fields = addColumns
 		createSQL, err := genSql.AddColumns()
 		if err != nil {
