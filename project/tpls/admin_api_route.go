@@ -43,6 +43,18 @@ type AdminAPIRoute struct {
 	Groups  []*AdminGroup
 }
 
+type AdminGroup struct {
+	Name     string
+	NameVal  string
+	CrudList []CrudItem
+}
+
+type CrudItem struct {
+	Group   string
+	Name    string
+	NameVal string
+}
+
 func (s *AdminAPIRoute) Execute() ([]byte, error) {
 	buf := new(bytes.Buffer)
 	tmpl, err := template.New("AdminAPIRoute").Parse(AdminAPIRouteTpl)

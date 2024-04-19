@@ -18,8 +18,9 @@ import (
 )
 
 type Config struct {
-	DB         *db.Config        ` + "`json:\"db\"`" + `
-	Redis      *cfg.Redis        ` + "`json:\"redis\"`" + `
+	Env        string        ` + "`json:\"env\"`" + "`yaml:\"env\"`" + `
+	DB         *db.Config        ` + "`json:\"db\"`" + "`yaml:\"db\"`" + `
+	Redis      *cfg.Redis        ` + "`json:\"redis\"`" + "`yaml:\"db\"`" + `
 }
 
 var CCfg = &Config{}
