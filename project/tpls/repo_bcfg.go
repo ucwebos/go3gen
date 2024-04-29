@@ -44,7 +44,7 @@ func New{{.EntityName}}Repo() *{{.EntityName}}Repo {
 	return r
 }
 
-func (r *NameRepo) loadCache() {
+func (r *{{.EntityName}}Repo) loadCache() {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 	list, _, err := r.Query(context.Background(), nil, nil)
@@ -54,7 +54,7 @@ func (r *NameRepo) loadCache() {
 	r.memCache = list
 }
 
-func (r *NameRepo) GetCaches() entity.{{.EntityName}}List {
+func (r *{{.EntityName}}Repo) GetCaches() entity.{{.EntityName}}List {
 	if r.memCache == nil || len(r.memCache) == 0 {
 		r.loadCache()
     }

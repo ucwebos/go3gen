@@ -11,6 +11,8 @@ const docsItemTpl = `# {{.Name}}
 
 ## 参数
 
+> [c#] {{.RequestClass}}.cs 
+
 | 字段     | 类型     | 是否必填 | 含义  |
 |--------|--------|------|-----|
 {{- range .Request}}
@@ -18,6 +20,8 @@ const docsItemTpl = `# {{.Name}}
 {{- end}}
 
 ## 响应
+
+> [c#] {{.ResponseClass}}.cs 
 
 | 字段          | 类型     | 含义     |
 |-------------|--------|--------|
@@ -29,11 +33,13 @@ const docsItemTpl = `# {{.Name}}
 `
 
 type DocsItem struct {
-	Name      string
-	RoutePath string
-	Request   []DocsItemField
-	Response  []DocsItemField
-	ExpJSON   []byte
+	Name          string
+	RoutePath     string
+	RequestClass  string
+	ResponseClass string
+	Request       []DocsItemField
+	Response      []DocsItemField
+	ExpJSON       []byte
 }
 
 type DocsItemField struct {

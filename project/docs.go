@@ -22,11 +22,13 @@ func (a *App) docsItem(dir string, f tpls.EntryFunItem, structList map[string]pa
 	response := a.toDocsItemFields(respXST.FieldList, structList, "")
 
 	t := &tpls.DocsItem{
-		Name:      f.FunMark,
-		RoutePath: f.URI,
-		Request:   request,
-		Response:  response,
-		ExpJSON:   []byte{},
+		Name:          f.FunMark,
+		RoutePath:     f.URI,
+		RequestClass:  reqXST.Name,
+		ResponseClass: respXST.Name,
+		Request:       request,
+		Response:      response,
+		ExpJSON:       []byte{},
 	}
 	body := a.getJSON(respXST.FieldList, structList)
 	sb, _ := jsoniter.MarshalIndent(body, "", "  ")
@@ -136,7 +138,7 @@ func (a *App) toDocsItemFields(fields map[string]parser.XField, structList map[s
 			request = append(request, tpls.DocsItemField{
 				Name:    name,
 				Type:    _type,
-				Must:    "Y",
+				Must:    "-",
 				Comment: field.Comment,
 			})
 		}

@@ -94,7 +94,7 @@ func generate(cmd *cobra.Command, args []string) {
 		app.CHandlerAndDoc()
 		app.CSocketHandlerAndDoc()
 		// Proto 生成
-		app.Protoc()
+		// app.Protoc()
 	}
 
 	for _, app := range _scanBFF() {
@@ -105,7 +105,9 @@ func generate(cmd *cobra.Command, args []string) {
 		app.CHandlerAndDoc()
 		app.CSocketHandlerAndDoc()
 		// Proto 生成
-		app.Protoc()
+		// app.Protoc()
+		// lang model
+		app.LangC()
 	}
 }
 

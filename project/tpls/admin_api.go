@@ -42,7 +42,10 @@ func {{.Name}}List(ctx *gin.Context) {
 		return
 	}
 
-	list, total, err := repo.{{.Name}}RepoInstance().Query(ctx, req.Form.ToFilteringList(), nil)
+	list, total, err := repo.{{.Name}}RepoInstance().Query(ctx, req.Form.ToFilteringList(), &filterx.Page{
+		Page:     int32(req.Page.CurrentPage),
+		PageSize: int32(req.Page.PageSize),
+	})
 	if err != nil {
 		types.JSONError(ctx, types.ErrorSys, err.Error())
 		return
