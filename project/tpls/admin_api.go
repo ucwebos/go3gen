@@ -10,6 +10,7 @@ const AdminAPIItemTpl = `package {{.PkgName}}
 import (
 	"github.com/gin-gonic/gin"
 
+	"{{.Project}}/common/tools/filterx"
 	"{{.Project}}/panel/types"
 	
 	"{{.Project}}/micro/{{.AppName}}/entity"

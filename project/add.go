@@ -23,6 +23,7 @@ func AddMicro(name string) {
 		"repo/converter",
 		"repo/do",
 		"repo/sql",
+		"repo/dbal",
 		"service",
 		fmt.Sprintf("types_%s", name),
 	} {
