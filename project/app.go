@@ -10,9 +10,11 @@ import (
 )
 
 const (
-	TypeAPI   = 1
-	TypeMicro = 2
-	TypeBFF   = 3
+	TypeAPI    = 1
+	TypeMicro  = 2
+	TypeBFF    = 3
+	TypePanel  = 4
+	TypeSimple = 5
 )
 
 type App struct {
@@ -97,6 +99,7 @@ func (a *App) doTypeDefGenFile() string {
 func (a *App) doGenFile() string {
 	return path.Join(a.Path, "repo", "do", "do_gen.go")
 }
+
 func (a *App) doTableNameFile() string {
 	return path.Join(a.Path, "repo", "do", "tables.go")
 }

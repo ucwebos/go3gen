@@ -2,6 +2,7 @@ package tpls
 
 import (
 	"bytes"
+	"strings"
 	"text/template"
 )
 
@@ -25,7 +26,7 @@ ADD COLUMN {{.Name}} {{.Type}} {{.NotNull}} {{.Default}} COMMENT '{{.Comment}}' 
 `
 
 var (
-	TypeMap = map[string]SQLField{
+	TypeMap = map[string]*SQLField{
 		"int": {
 			Type:     "bigint(20)",
 			DataType: "bigint",
@@ -72,7 +73,7 @@ var (
 			Default:  "DEFAULT CURRENT_TIMESTAMP",
 		},
 	}
-	SpecialField = map[string]SQLField{
+	SpecialField = map[string]*SQLField{
 		`create_time`: {
 			Name:    "`create_time`",
 			Type:    "datetime",
@@ -103,7 +104,7 @@ type GenSQL struct {
 	Engine     string
 	Charset    string
 	Collate    string
-	Fields     []SQLField
+	Fields     []*SQLField
 }
 
 type SQLField struct {
@@ -128,6 +129,21 @@ func (s *GenSQL) CreateTable() ([]byte, error) {
 	}
 	if s.Collate == "" {
 		s.Collate = "utf8mb4_bin"
+	}
+	for _, field := range s.Fields {
+		if field.Name == s.PrimaryKey {
+			field.NotNull = "NOT NULL AUTO_INCREMENT"
+			field.Default = ""
+			break
+		}
+		if field.Name == "`type`" && strings.Contains(field.Type, "int") {
+			field.DataType = "tinyint"
+			field.Type = "tinyint(4)"
+		}
+		if field.Name == "`status`" && strings.Contains(field.Type, "int") {
+			field.DataType = "tinyint"
+			field.Type = "tinyint(4)"
+		}
 	}
 	tmpl, err := template.New("GenSQL").Parse(sqlCreateTableTpl)
 	if err != nil {

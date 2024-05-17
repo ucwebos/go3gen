@@ -59,7 +59,7 @@ func (a *App) toGenSQL(tableName string, xst parser.XST) tpls.GenSQL {
 	})
 	primaryKey := ""
 	last := ""
-	sFields := make([]tpls.SQLField, 0)
+	sFields := make([]*tpls.SQLField, 0)
 	for _, field := range fieldList {
 		dbTag := field.GetTag("db")
 		if dbTag != nil {
@@ -76,7 +76,10 @@ func (a *App) toGenSQL(tableName string, xst parser.XST) tpls.GenSQL {
 				primaryKey = name
 			}
 			tt := tpls.TypeMap[strings.TrimPrefix(field.Type, "*")]
-			sf := tpls.SQLField{
+			if tt == nil {
+				tt = &tpls.SQLField{}
+			}
+			sf := &tpls.SQLField{
 				TableName: utils.AddStrSqlC(tableName, "`"),
 				After:     last,
 				Name:      name,
@@ -102,7 +105,7 @@ func (a *App) toGenSQL(tableName string, xst parser.XST) tpls.GenSQL {
 func (a *App) modifySQL(db *utils.DB, tableName string, xst parser.XST) error {
 	columns, _ := db.TableColumns(tableName)
 	genSql := a.toGenSQL(tableName, xst)
-	addColumns := make([]tpls.SQLField, 0)
+	addColumns := make([]*tpls.SQLField, 0)
 	for _, field := range genSql.Fields {
 		if _, ok := columns[field.SrcName]; !ok {
 			addColumns = append(addColumns, field)

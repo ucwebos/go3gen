@@ -40,7 +40,7 @@ func MustInit() {
 	redisInstance = redis.NewClient(CCfg.Redis.ToRedisOption())
 	_rs := redisInstance.Ping(context.Background())
 	if err = _rs.Err(); err != nil {
-		log.Panicf("micro-{{.Name}} NewRedis error: %v, config: %+v", err, CCfg.DB)
+		log.Panicf("micro-{{.Name}} NewRedis error: %v, config: %+v", err, CCfg.Redis)
 	}
 }
 
