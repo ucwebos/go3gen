@@ -134,7 +134,7 @@ func (s *GenSQL) CreateTable() ([]byte, error) {
 		if field.Name == s.PrimaryKey {
 			field.NotNull = "NOT NULL AUTO_INCREMENT"
 			field.Default = ""
-			break
+			continue
 		}
 		if field.Name == "`type`" && strings.Contains(field.Type, "int") {
 			field.DataType = "tinyint"
@@ -145,6 +145,7 @@ func (s *GenSQL) CreateTable() ([]byte, error) {
 			field.Type = "tinyint(4)"
 		}
 	}
+
 	tmpl, err := template.New("GenSQL").Parse(sqlCreateTableTpl)
 	if err != nil {
 		return nil, err

@@ -387,7 +387,7 @@ func (a *App) BizEntryDocParse(entryName string, doc string, socket bool) []*tpl
 				URI2:        fmt.Sprintf("/%s/%s", groupURIName, m),
 			}
 			if socket {
-				item.URI = fmt.Sprintf("%s.%s", group.Group, m)
+				item.URI = fmt.Sprintf("%s.%s", group.Group, strings.ToLower(method))
 			}
 			rm := handlerMiddleExp.FindStringSubmatch(line)
 			if len(rm) == 2 {
