@@ -109,6 +109,21 @@ func generate(cmd *cobra.Command, args []string) {
 		// lang model
 		app.LangC()
 	}
+
+	simpleApp := path.Join(cfg.C.RootPath, "app")
+	if tool_file.Exists(simpleApp) {
+		app := project.NewApp(project.TypeSimple, "app", simpleApp)
+		app.SimpleModulesTypes()
+		// GI
+		app.GI()
+		// CHandlerAndDoc
+		//app.CHandlerAndDoc()
+		//app.CSocketHandlerAndDoc()
+		// Proto 生成
+		// app.Protoc()
+		// lang model
+		//app.LangC()
+	}
 }
 
 func addMs(cmd *cobra.Command, args []string) {

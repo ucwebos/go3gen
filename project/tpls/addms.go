@@ -20,7 +20,7 @@ import (
 type Config struct {
 	Env        string        ` + "`json:\"env\" yaml:\"env\"`" + `
 	DB         *db.Config        ` + "`json:\"db\" yaml:\"db\"`" + `
-	Redis      *cfg.Redis        ` + "`json:\"redis\" yaml:\"db\"`" + `
+	Redis      *cfg.Redis        ` + "`json:\"redis\" yaml:\"redis\"`" + `
 }
 
 var CCfg = &Config{}

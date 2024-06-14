@@ -244,6 +244,80 @@ func (a *App) BffModulesTypes() {
 	}
 }
 
+func (a *App) SimpleModulesTypes() {
+	if !tool_file.Exists(path.Join(a.Path, "types")) || !tool_file.Exists(path.Join(a.Path, "converter")) {
+		return
+	}
+	// modules
+	// module下的实体
+	for _, module := range modules {
+		var (
+			xstMaps = map[string][]parser.XST{}
+
+			bufc = a.GenFileHeaderWithAsName("converter", []string{
+				fmt.Sprintf("%s/common/tools", cfg.C.Project),
+				fmt.Sprintf("%s/common/core/log", cfg.C.Project),
+				fmt.Sprintf("%s/common/tools/tool_time", cfg.C.Project),
+				fmt.Sprintf("%s/entity", module.PkgPath),
+			}, map[string]string{
+				"types": fmt.Sprintf("%s/types/%s", a.Path, "micro_"+module.Name),
+			})
+		)
+		for _, xst := range module.XSTList {
+			if _, ok := xstMaps[xst.File]; !ok {
+				xstMaps[xst.File] = make([]parser.XST, 0)
+			}
+			xstMaps[xst.File] = append(xstMaps[xst.File], xst)
+		}
+
+		for _file, xstList := range xstMaps {
+			var (
+				err       error
+				_, _fname = path.Split(_file)
+				bufd      = a.GenFileHeaderAllowEdit("micro_"+module.Name, []string{
+					"time",
+				})
+				ipts = &parser.IParser{
+					StructList: map[string]parser.XST{},
+				}
+			)
+			if tool_file.Exists(path.Join(a.Path, "types", "micro_"+module.Name)) {
+				ipts, err = parser.Scan(path.Join(a.Path, "types", "micro_"+module.Name), parser.ParseTypeWatch)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
+
+			for _, xst := range xstList {
+				oldXst := ipts.StructList[xst.Name]
+				_b, _bc, err := a._types(xst, oldXst, "json", "Micro"+tool_str.ToUFirst(module.Name))
+				if err != nil {
+					log.Fatal(err)
+				}
+				bufd = append(bufd, _b...)
+				bufc = append(bufc, _bc...)
+			}
+			os.MkdirAll(path.Join(a.Path, "types", "micro_"+module.Name), 0777)
+			filename := path.Join(a.Path, "types", "micro_"+module.Name, fmt.Sprintf("entity_%s", _fname))
+			bufd = a.format(bufd, filename)
+			err = tool_file.WriteFile(filename, bufd)
+			if err != nil {
+				log.Printf("types[micro] gen [%s] write file err: %v \n", filename, err)
+			}
+			log.Printf("gen types[micro] file %s \n", filename)
+		}
+
+		filename := path.Join(a.Path, "converter", "micro_"+module.Name+"_converter_gen.go")
+		bufc = a.format(bufc, filename)
+		err := tool_file.WriteFile(filename, bufc)
+		if err != nil {
+			log.Printf("types_conv gen [%s] write file err: %v \n", filename, err)
+		}
+		log.Printf("gen types_conv file %s \n", filename)
+	}
+
+}
+
 func (a *App) eTypes(xstList []parser.XST) {
 	if a.Type == TypeMicro {
 		return

@@ -130,7 +130,7 @@ func (a *App) typesGenFiles() []typesGenFile {
 				})
 			}
 		}
-	case TypeBFF:
+	case TypeBFF, TypeSimple:
 		typesFiles = append(typesFiles, typesGenFile{
 			EntryName:    a.Name,
 			Entry:        a.Path,
@@ -139,7 +139,6 @@ func (a *App) typesGenFiles() []typesGenFile {
 				"time",
 			}),
 		})
-
 	}
 
 	return typesFiles
