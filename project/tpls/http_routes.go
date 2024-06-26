@@ -31,7 +31,7 @@ func generated(r gin.IRoutes) {
 	// ----------------------------------- {{.GroupName}} -----------------------------------
 	{{- range $it := .FunList}}
 	// {{.FunMark}}
-	r.POST("{{.URI}}"{{with $it.Middlewares}},{{range $it.Middlewares}}middleware.{{.}}{{end}}{{end}}, func(ctx *gin.Context) {
+	r.POST("{{.URI}}"{{with $it.Middlewares}}{{range $it.Middlewares}},middleware.{{.}}{{end}}{{end}}, func(ctx *gin.Context) {
 		var (
 			st = time.Now()
 			_ctx = common.HTTPMetadata(ctx)
@@ -39,7 +39,11 @@ func generated(r gin.IRoutes) {
 			resp = &types.{{$it.RespName}}{}
 			err error
 		)
+		{{- if $it.WithLog}}
 		reqRaw,raw,_common, err := reqJSON(ctx)
+		{{- else}}
+		reqRaw,_,_common, err := reqJSON(ctx)
+		{{- end}}
 		if err != nil {
 			JSONError(ctx, common.ErrParams)
 			return
@@ -55,8 +59,10 @@ func generated(r gin.IRoutes) {
 				"api":    "{{$it.URI}}",
 				"ret":    prometheus.RetLabel(err),
 			}, st)
+			{{- if $it.WithLog}}
 			_resp,_ := tools.JSON.Marshal(resp)
 			log.With().TraceID(_ctx).Field("common",_common).Field("uri", "{{$it.URI}}").Field("req", raw).Field("resp", _resp).Field("err", err).Info("on-http")
+			{{- end}}
 		}()
 		if err = common.BindBody(reqRaw, &req); err != nil {
 			JSONError(ctx, common.ErrParams)
@@ -98,6 +104,7 @@ type EntryFunItem struct {
 	ReqName     string
 	RespName    string
 	Middlewares []string
+	WithLog     bool
 	URI         string
 	URI2        string
 }

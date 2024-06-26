@@ -340,6 +340,11 @@ func (a *App) CRepos() {
 	a._cRepo(xstList)
 }
 
+const (
+	NLOG = "@NLOG"
+	NTLP = "@NTLP"
+)
+
 var (
 	handlerFunExp    = regexp.MustCompile(`(.+)\s+\[(\w+)]`)
 	handlerGroupExp  = regexp.MustCompile(`#(\S+)\s+(\w+)`)
@@ -371,6 +376,10 @@ func (a *App) BizEntryDocParse(entryName string, doc string, socket bool) []*tpl
 		}
 		group := groups[len(groups)-1]
 		r := handlerFunExp.FindStringSubmatch(line)
+		withLog := true
+		if strings.Contains(line, NLOG) {
+			withLog = false
+		}
 		if len(r) == 3 {
 			method := tool_str.ToUFirst(r[2])
 			fun := tool_str.ToUFirst(group.Group) + method
@@ -382,6 +391,7 @@ func (a *App) BizEntryDocParse(entryName string, doc string, socket bool) []*tpl
 				FunMark:     r[1],
 				ReqName:     fun + "Req",
 				RespName:    fun + "Resp",
+				WithLog:     withLog,
 				Middlewares: make([]string, 0),
 				URI:         fmt.Sprintf("/%s/%s/%s", entryName, groupURIName, m),
 				URI2:        fmt.Sprintf("/%s/%s", groupURIName, m),
