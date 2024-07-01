@@ -81,6 +81,7 @@ func (a *App) _cRepo(xstList []parser.XST) {
 			AppPkgPath:  a.appPkgPath(),
 			EntityName:  s,
 			TableName:   tool_str.ToSnakeCase(s),
+			StaticLoad:  cfg.C.BCFGStaticLoad,
 		}
 		buf, err := tpl.Execute()
 		if err != nil {

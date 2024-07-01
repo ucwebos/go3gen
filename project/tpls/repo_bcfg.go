@@ -35,12 +35,15 @@ func New{{.EntityName}}Repo() *{{.EntityName}}Repo {
 		mux: sync.Mutex{},
 		Table: "{{.TableName}}",
 	}
+	_ = TableRepoInstance().DBAL.IgnoreCreateTable(context.Background(), "{{.TableName}}")
+	{{- if not .StaticLoad }}
 	go func() {
 		tick := time.NewTicker(5 * time.Second)
 		for range tick.C {
 			r.loadCache()
 		}
 	}()
+	{{- end}}
 	return r
 }
 
@@ -164,6 +167,7 @@ type RepoBCFG struct {
 	AppPkgPath  string
 	EntityName  string
 	TableName   string
+	StaticLoad  bool
 }
 
 func (s *RepoBCFG) Execute() ([]byte, error) {
