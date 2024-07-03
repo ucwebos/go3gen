@@ -13,8 +13,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	
-
 	"{{.AppPkgPath}}/entity"
 
 	"{{.ProjectName}}/common/tools/filterx"

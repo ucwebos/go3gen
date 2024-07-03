@@ -36,6 +36,7 @@ type DoField struct {
 	Tag       string
 	ConvSlice bool
 	IsPoint   bool
+	IsComPkg  bool
 	Comment   string
 }
 
@@ -104,10 +105,14 @@ func To{{.Name}}Entity(input *do.{{.Name}}Do) *entity.{{.Name}}{
 {{- range .Fields }}
 	{{- if eq .SType 1}} 
 	if input.{{.Name}} != ""  {
-		{{- if .IsPoint}} 
-		t := &entity.{{ .Type2}}{}
+		{{- if .IsComPkg}}
+			t := &{{ .Type2}}{}
 		{{- else}}
-		t := entity.{{ .Type2}}{}
+			{{- if .IsPoint}} 
+			t := &entity.{{ .Type2}}{}
+			{{- else}}
+			t := entity.{{ .Type2}}{}
+			{{- end}}
 		{{- end}}
 		err := tools.JSON.Unmarshal([]byte(input.{{.Name}}), &t)
 		if err != nil {

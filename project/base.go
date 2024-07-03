@@ -26,6 +26,9 @@ func AddEntityPkg(str string) string {
 	if strings.Contains(str, "filterx.") {
 		return str
 	}
+	if strings.Contains(str, "common.") {
+		return str
+	}
 	for i, r := range []rune(str) {
 		if tool_str.UFirst(string(r)) {
 			return str[:i] + "entity." + str[i:]

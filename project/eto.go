@@ -182,6 +182,9 @@ func (a *App) modulesTypes(tf typesGenFile) {
 			})
 		)
 		for _, xst := range module.XSTList {
+			if xst.IOIgnore {
+				continue
+			}
 			if _, ok := xstMaps[xst.File]; !ok {
 				xstMaps[xst.File] = make([]parser.XST, 0)
 			}
@@ -493,12 +496,11 @@ func (a *App) _types(xst parser.XST, oldXst parser.XST, tagName string, nameMark
 			if tagJSON == nil {
 				continue
 			}
-			if tagJSON != nil {
-				tags = fmt.Sprintf("`json:\"%s\"`", tagJSON.Name)
-				if tagJSON.Name == "-" {
-					tags = ""
-				}
+			tags = fmt.Sprintf("`json:\"%s\"`", tagJSON.Name)
+			if tagJSON.Name == "-" {
+				tags = ""
 			}
+
 			if tagIO != nil {
 				if tagIO.Txt == "-" {
 					continue
@@ -586,6 +588,7 @@ func (a *App) _do(xst parser.XST) ([]byte, []byte, error) {
 			tag := tagDesc.Txt
 			convSlice := false
 			isPoint := false
+			isComPkg := false
 			type2 := ""
 			if tagDesc.Opts != nil && len(tagDesc.Opts) > 0 {
 				if v, ok := tagDesc.Opts["conv"]; ok {
@@ -605,6 +608,9 @@ func (a *App) _do(xst parser.XST) ([]byte, []byte, error) {
 				} else {
 					if strings.Index(field.Type, "*") == 0 {
 						isPoint = true
+					}
+					if strings.Contains(field.Type, "common.") {
+						isComPkg = true
 					}
 				}
 
@@ -629,6 +635,7 @@ func (a *App) _do(xst parser.XST) ([]byte, []byte, error) {
 				Tag:       tags,
 				ConvSlice: convSlice,
 				IsPoint:   isPoint,
+				IsComPkg:  isComPkg,
 				Comment:   field.Comment,
 			})
 		}

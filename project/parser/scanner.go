@@ -132,6 +132,7 @@ func (ips *IParser) ParseFile(pwd string) error {
 
 				var (
 					used       = true
+					IOIgnore   = false
 					ImplINF    = ""
 					GIName     = ""
 					GI         = false
@@ -142,6 +143,9 @@ func (ips *IParser) ParseFile(pwd string) error {
 					for _, comment := range x.Doc.List {
 						if strings.Index(comment.Text, "@IGNORE") > 0 {
 							used = false
+						}
+						if strings.Contains(comment.Text, "@IO_IGNORE") {
+							IOIgnore = true
 						}
 						if strings.Contains(comment.Text, "@IMPL[") {
 							r := reImpl.FindStringSubmatch(comment.Text)
@@ -187,6 +191,7 @@ func (ips *IParser) ParseFile(pwd string) error {
 					case *ast.StructType:
 						xst := XST{
 							GIName:     GIName,
+							IOIgnore:   IOIgnore,
 							GI:         GI,
 							BCFG:       BCFG,
 							NoDeleteAT: noDeleteAT,
