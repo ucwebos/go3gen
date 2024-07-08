@@ -52,7 +52,8 @@ type XST struct {
 	GIName     string // 自定义GI名
 	IOIgnore   bool
 	GI         bool // 是否生成GI
-	BCFG       bool // 生产配置表实现
+	BCFG       bool // 后台配置表实现
+	EXCEL      bool // excel配置表实现
 	NoDeleteAT bool
 	ImplINF    string // 标注实现接口
 	Imports    []string

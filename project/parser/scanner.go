@@ -137,6 +137,7 @@ func (ips *IParser) ParseFile(pwd string) error {
 					GIName     = ""
 					GI         = false
 					BCFG       = false
+					EXCEL      = false
 					noDeleteAT = false
 				)
 				if x.Doc != nil && len(x.Doc.List) >= 0 {
@@ -166,6 +167,9 @@ func (ips *IParser) ParseFile(pwd string) error {
 						if strings.Contains(comment.Text, "@BCFG") {
 							BCFG = true
 						}
+						if strings.Contains(comment.Text, "@EXCEL") {
+							EXCEL = true
+						}
 					}
 				}
 
@@ -194,6 +198,7 @@ func (ips *IParser) ParseFile(pwd string) error {
 							IOIgnore:   IOIgnore,
 							GI:         GI,
 							BCFG:       BCFG,
+							EXCEL:      EXCEL,
 							NoDeleteAT: noDeleteAT,
 							ImplINF:    ImplINF,
 							Imports:    imports,

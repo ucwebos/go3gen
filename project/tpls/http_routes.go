@@ -45,7 +45,7 @@ func generated(r gin.IRoutes) {
 		reqRaw,_,_common, err := reqJSON(ctx)
 		{{- end}}
 		if err != nil {
-			JSONError(ctx, common.ErrParams)
+			JSONError(ctx, err.(common.ErrCode))
 			return
 		}
 		if _common != nil {
