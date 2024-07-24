@@ -60,8 +60,8 @@ func generated(r gin.IRoutes) {
 				"ret":    prometheus.RetLabel(err),
 			}, st)
 			{{- if $it.WithLog}}
-			_resp,_ := tools.JSON.Marshal(resp)
-			log.With().TraceID(_ctx).Field("common",_common).Field("uri", "{{$it.URI}}").Field("req", raw).Field("resp", _resp).Field("err", err).Info("on-http")
+			_resp,_ := tools.JSON.MarshalToString(resp)
+			log.With().TraceID(_ctx).Int("uid",int(_common.UID)).String("uri", "{{$it.URI}}").String("req", string(raw)).String("resp", _resp).Info("ioReply")
 			{{- end}}
 		}()
 		if err = common.BindBody(reqRaw, &req); err != nil {

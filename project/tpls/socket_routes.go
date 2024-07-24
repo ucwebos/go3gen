@@ -42,6 +42,9 @@ type {{$.SocketTypeUF}}{{$x.GroupUFirst}} struct {
 		// 前置处理
 		release, _common, err := middleware.SocBefore(ctx,"{{$.SocketType}}.{{$it.URI}}",sess);
 		if err != nil {
+			if e, ok := err.(common.ErrCode); ok {
+				return nil, pitaya.Error(e,fmt.Sprintf("PI-%d",e.Code),map[string]string{})
+			}
 			return nil, err
 		}
 		defer release()
@@ -54,11 +57,16 @@ type {{$.SocketTypeUF}}{{$x.GroupUFirst}} struct {
 				"route": "{{$.SocketType}}.{{$it.URI}}",
 				"ret":   prometheus.RetLabel(err),
 			}, st)
-			_resp, _ := tools.JSON.Marshal(resp)
-			_req,_ := tools.JSON.Marshal(req)
-			log.With().TraceID(ctx).Field("common",_common).Field("uri", "{{$.SocketType}}.{{$it.URI}}").Field("req", _req).Field("resp", _resp).Field("err", err).Info("on-socket")
+			_resp, _ := tools.JSON.MarshalToString(resp)
+			_req,_ := tools.JSON.MarshalToString(req)
+			log.With().TraceID(ctx).Int("uid",int(_common.UID)).String("uri", "{{$it.URI}}").String("req", _req).String("resp", _resp).Info("ioReply")
 		}()
 		resp, err = handler.{{$it.FunName}}(ctx, req)
+		if err != nil {
+			if e, ok := err.(common.ErrCode); ok {
+				return nil, pitaya.Error(e, fmt.Sprintf("PI-%d", e.Code), map[string]string{})
+			}
+		}
 		return resp, err
 	}
 {{- end}}
