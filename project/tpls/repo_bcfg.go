@@ -33,7 +33,6 @@ func New{{.EntityName}}Repo() *{{.EntityName}}Repo {
 		mux: sync.Mutex{},
 		Table: "{{.TableName}}",
 	}
-	_ = TableRepoInstance().DBAL.IgnoreCreateTable(context.Background(), "{{.TableName}}")
 	{{- if not .StaticLoad }}
 	go func() {
 		tick := time.NewTicker(5 * time.Second)
@@ -48,6 +47,7 @@ func New{{.EntityName}}Repo() *{{.EntityName}}Repo {
 func (r *{{.EntityName}}Repo) loadCache() {
 	r.mux.Lock()
 	defer r.mux.Unlock()
+	_ = TableRepoInstance().DBAL.IgnoreCreateTable(context.Background(), "{{.TableName}}")
 	list, _, err := r.Query(context.Background(), nil, nil)
 	if err != nil {
 		return

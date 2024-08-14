@@ -40,7 +40,7 @@ func generated(r gin.IRoutes) {
 			err error
 		)
 		{{- if $it.WithLog}}
-		reqRaw,raw,_common, err := reqJSON(ctx)
+		reqRaw,_,_common, err := reqJSON(ctx)
 		{{- else}}
 		reqRaw,_,_common, err := reqJSON(ctx)
 		{{- end}}
@@ -60,8 +60,8 @@ func generated(r gin.IRoutes) {
 				"ret":    prometheus.RetLabel(err),
 			}, st)
 			{{- if $it.WithLog}}
-			_resp,_ := tools.JSON.MarshalToString(resp)
-			log.With().TraceID(_ctx).Int("uid",int(_common.UID)).String("uri", "{{$it.URI}}").String("req", string(raw)).String("resp", _resp).Info("ioReply")
+			// _resp,_ := tools.JSON.MarshalToString(resp)
+			// log.With().TraceID(_ctx).Int("uid",int(_common.UID)).String("uri", "{{$it.URI}}").String("req", string(raw)).String("resp", _resp).Info("ioReply")
 			{{- end}}
 		}()
 		if err = common.BindBody(reqRaw, &req); err != nil {
