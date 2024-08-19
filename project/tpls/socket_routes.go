@@ -44,6 +44,10 @@ type {{$.SocketTypeUF}}{{$x.GroupUFirst}} struct {
 		if err != nil {
 			if e, ok := err.(common.ErrCode); ok {
 				return nil, pitaya.Error(e,fmt.Sprintf("PI-%d",e.Code),map[string]string{})
+	s			witch e.Code {
+				case common.ErrClosureIPCode, common.ErrClosureUserCode, common.ErrMaintainingCode:
+					sess.Kick(context.Background())
+				}
 			}
 			return nil, err
 		}
