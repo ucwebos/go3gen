@@ -31,6 +31,12 @@ func New{{.EntityName}}Repo() *{{.EntityName}}Repo {
 		Table: "{{.TableName}}",
 	}
 	r.loadCache()
+	go func() {
+		ticker := time.NewTicker(time.Second * 5)
+		for range ticker.C {
+			r.loadCache()
+		}
+	}()
 	return r
 }
 
