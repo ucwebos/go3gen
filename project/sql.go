@@ -24,6 +24,7 @@ func (a *App) GenSql(dsn string) {
 	}
 	for s, xst := range ipr.StructList {
 		if v, ok := ipr.ConstStrList["TableName"+s]; ok {
+			fmt.Println(s)
 			err = a.createTableSQL(db, v, xst)
 			if err != nil {
 				panic(err)
@@ -34,17 +35,20 @@ func (a *App) GenSql(dsn string) {
 
 func (a *App) createTableSQL(db *utils.DB, tableName string, xst parser.XST) error {
 	filename := fmt.Sprintf("%s/%s_create.sql", path.Join(a.Path, "repo", "sql"), tableName)
+	fmt.Println(filename)
 	createSQL := db.TableCreateSQL(tableName)
 	if createSQL != "" {
 		tool_file.WriteFile(filename, []byte(createSQL))
-		a.modifySQL(db, tableName, xst)
+		err := a.modifySQL(db, tableName, xst)
+		fmt.Println(err)
 	} else {
 		genSql := a.toGenSQL(tableName, xst)
 		createSQL, err := genSql.CreateTable()
 		if err != nil {
 			return err
 		}
-		tool_file.WriteFile(filename, createSQL)
+		err = tool_file.WriteFile(filename, createSQL)
+		fmt.Println(err)
 	}
 	return nil
 }

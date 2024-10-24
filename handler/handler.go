@@ -107,9 +107,9 @@ func generate(cmd *cobra.Command, args []string) {
 		// Proto 生成
 		// app.Protoc()
 		// lang model
-		if cfg.C.LangC {
-			app.LangC()
-		}
+		//if cfg.C.LangC {
+		//	app.LangC()
+		//}
 	}
 
 	simpleApp := path.Join(cfg.C.RootPath, "app")

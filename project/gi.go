@@ -228,6 +228,9 @@ func (a *App) _microServiceUniTest(items []tpls.MicroFunItem) {
 			buf      []byte
 			err      error
 		)
+		if tool_file.Exists(filename) {
+			continue
+		}
 		tpl := tpls.MicroTesting{
 			AppName:    a.Name,
 			AppNameUF:  tool_str.ToUFirst(a.Name),

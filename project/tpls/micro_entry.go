@@ -57,23 +57,7 @@ func New{{.AppNameUF}}() *{{.AppNameUF}} {
 
 // {{.FunName}} {{.FunMark}} 
 func (s *{{$.AppNameUF}}){{.FunName}}(ctx context.Context, input *types_{{$.AppName}}.{{.ReqName}}) (*types_{{$.AppName}}.{{.RespName}},error) {
-	var (
-		st = time.Now()
-		resp = &types_{{$.AppName}}.{{.RespName}}{}
-		err error
-	)
-	ctx, span := tracing.StartSpan(ctx, "micro:{{$.AppName}}_{{.FunName}}")
-	defer func() {
-		span.End()
-		prometheus.HistogramVec.Timing("micro_seconds", map[string]string{
-			"micro":  "{{$.AppName}}",
-			"func":   "{{.FunName}}",
-			"ret":    prometheus.RetLabel(err),
-		}, st)
-	}()
-	
-	resp, err = service.{{.Service}}Instance().{{.Method}}(ctx,input)
-	return resp, err
+	return service.{{.Service}}Instance().{{.Method}}(ctx,input)
 }	
 
 {{- end}}
