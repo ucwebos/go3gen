@@ -138,6 +138,8 @@ func (ips *IParser) ParseFile(pwd string) error {
 					GI         = false
 					BCFG       = false
 					EXCEL      = false
+					JSON       = false
+					YAML       = false
 					noDeleteAT = false
 				)
 				if x.Doc != nil && len(x.Doc.List) >= 0 {
@@ -170,6 +172,12 @@ func (ips *IParser) ParseFile(pwd string) error {
 						if strings.Contains(comment.Text, "@EXCEL") {
 							EXCEL = true
 						}
+						if strings.Contains(comment.Text, "@JSON") {
+							JSON = true
+						}
+						if strings.Contains(comment.Text, "@YAML") {
+							YAML = true
+						}
 					}
 				}
 
@@ -199,6 +207,8 @@ func (ips *IParser) ParseFile(pwd string) error {
 							GI:         GI,
 							BCFG:       BCFG,
 							EXCEL:      EXCEL,
+							JSON:       JSON,
+							YAML:       YAML,
 							NoDeleteAT: noDeleteAT,
 							ImplINF:    ImplINF,
 							Imports:    imports,

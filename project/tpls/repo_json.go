@@ -5,11 +5,13 @@ import (
 	"text/template"
 )
 
-const repoExcelTpl = `
+const repoJSONTpl = `
 package repo
 
 import (
-	"context"
+	"fmt"
+	"os"
+	"sync"
 
 	"github.com/pkg/errors"
 
@@ -41,14 +43,7 @@ func (r *{{.EntityName}}Repo) Filename() string {
 func (r *{{.EntityName}}Repo) LoadCache() {
 	r.mux.Lock()
 	defer r.mux.Unlock()
-	data, err := tool_excel.ExcelSheetData(path.Join(config.CCfg.ExcelPath, r.Table), "")
-	if err != nil {
-		panic(err)
-	}
-	buf, err := tools.JSONFuzzy.Marshal(data)
-	if err != nil {
-		panic(err)
-	}
+	buf, err := os.ReadFile(path.Join(config.CCfg.ExcelPath, r.Table))
 	list := entity.{{.EntityName}}List{}
 	err = tools.JSONFuzzy.Unmarshal(buf, &list)
 	if err != nil {
@@ -65,16 +60,16 @@ func (r *{{.EntityName}}Repo) GetCaches() entity.{{.EntityName}}List {
 }
 `
 
-type RepoEXCEL struct {
+type RepoJSON struct {
 	ProjectName string
 	AppPkgPath  string
 	EntityName  string
 	TableName   string
 }
 
-func (s *RepoEXCEL) Execute() ([]byte, error) {
+func (s *RepoJSON) Execute() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	tmpl, err := template.New("repoEXCEL").Parse(repoExcelTpl)
+	tmpl, err := template.New("repoJSON").Parse(repoJSONTpl)
 	if err != nil {
 		return nil, err
 	}

@@ -18,6 +18,8 @@ func (a *App) _cRepo(xstList []parser.XST) {
 	entityList := make([]string, 0)
 	bcfgList := make([]string, 0)
 	excelList := make([]string, 0)
+	jsonList := make([]string, 0)
+	yamlList := make([]string, 0)
 	hasIDMap := map[string]bool{}
 	for _, it := range xstList {
 		if it.BCFG {
@@ -26,6 +28,14 @@ func (a *App) _cRepo(xstList []parser.XST) {
 		}
 		if it.EXCEL {
 			excelList = append(excelList, it.Name)
+			continue
+		}
+		if it.JSON {
+			jsonList = append(jsonList, it.Name)
+			continue
+		}
+		if it.YAML {
+			yamlList = append(yamlList, it.Name)
 			continue
 		}
 		for _, field := range it.FieldList {
@@ -126,6 +136,52 @@ func (a *App) _cRepo(xstList []parser.XST) {
 			}
 		}
 	}
+
+	for _, s := range jsonList {
+		tpl := tpls.RepoJSON{
+			ProjectName: cfg.C.Project,
+			AppPkgPath:  a.appPkgPath(),
+			EntityName:  s,
+			TableName:   tool_str.ToSnakeCase(s),
+		}
+		buf, err := tpl.Execute()
+		if err != nil {
+			log.Printf("gen RepoJSON %s err: %v \n", s, err)
+			return
+		}
+		filename := path.Join(a.Path, "repo", fmt.Sprintf("%s_repo.go", tool_str.ToSnakeCase(s)))
+		if !tool_file.Exists(filename) {
+			buf = a.format(buf, filename)
+			log.Printf("gen repo file %s \n", filename)
+			err = tool_file.WriteFile(filename, buf)
+			if err != nil {
+				return
+			}
+		}
+	}
+	for _, s := range yamlList {
+		tpl := tpls.RepoYAML{
+			ProjectName: cfg.C.Project,
+			AppPkgPath:  a.appPkgPath(),
+			EntityName:  s,
+			TableName:   tool_str.ToSnakeCase(s),
+		}
+		buf, err := tpl.Execute()
+		if err != nil {
+			log.Printf("gen RepoYAML %s err: %v \n", s, err)
+			return
+		}
+		filename := path.Join(a.Path, "repo", fmt.Sprintf("%s_repo.go", tool_str.ToSnakeCase(s)))
+		if !tool_file.Exists(filename) {
+			buf = a.format(buf, filename)
+			log.Printf("gen repo file %s \n", filename)
+			err = tool_file.WriteFile(filename, buf)
+			if err != nil {
+				return
+			}
+		}
+	}
+
 }
 
 func (a *App) _cHandler(ef tpls.HttpEntry) {

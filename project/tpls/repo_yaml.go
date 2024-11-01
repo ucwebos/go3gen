@@ -5,12 +5,15 @@ import (
 	"text/template"
 )
 
-const repoExcelTpl = `
+const repoYAMLTpl = `
 package repo
 
 import (
-	"context"
+	"fmt"
+	"os"
+	"sync"
 
+	"gopkg.in/yaml.v3"
 	"github.com/pkg/errors"
 
 	"{{.AppPkgPath}}/entity"
@@ -41,16 +44,9 @@ func (r *{{.EntityName}}Repo) Filename() string {
 func (r *{{.EntityName}}Repo) LoadCache() {
 	r.mux.Lock()
 	defer r.mux.Unlock()
-	data, err := tool_excel.ExcelSheetData(path.Join(config.CCfg.ExcelPath, r.Table), "")
-	if err != nil {
-		panic(err)
-	}
-	buf, err := tools.JSONFuzzy.Marshal(data)
-	if err != nil {
-		panic(err)
-	}
+	buf, err := os.ReadFile(path.Join(config.CCfg.ExcelPath, r.Table))
 	list := entity.{{.EntityName}}List{}
-	err = tools.JSONFuzzy.Unmarshal(buf, &list)
+	err = yaml.Unmarshal(buf, &list)
 	if err != nil {
 		panic(err)
 	}
@@ -65,16 +61,16 @@ func (r *{{.EntityName}}Repo) GetCaches() entity.{{.EntityName}}List {
 }
 `
 
-type RepoEXCEL struct {
+type RepoYAML struct {
 	ProjectName string
 	AppPkgPath  string
 	EntityName  string
 	TableName   string
 }
 
-func (s *RepoEXCEL) Execute() ([]byte, error) {
+func (s *RepoYAML) Execute() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	tmpl, err := template.New("repoEXCEL").Parse(repoExcelTpl)
+	tmpl, err := template.New("RepoYAML").Parse(repoYAMLTpl)
 	if err != nil {
 		return nil, err
 	}

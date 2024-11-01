@@ -54,6 +54,8 @@ type XST struct {
 	GI         bool // 是否生成GI
 	BCFG       bool // 后台配置表实现
 	EXCEL      bool // excel配置表实现
+	YAML       bool // YAML配置表实现
+	JSON       bool // JSON配置表实现
 	NoDeleteAT bool
 	ImplINF    string // 标注实现接口
 	Imports    []string
