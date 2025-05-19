@@ -18,6 +18,7 @@ func (a *App) docsItem(dir string, f tpls.EntryFunItem, structList map[string]pa
 		reqXST   = structList[f.ReqName]
 		respXST  = structList[f.RespName]
 	)
+
 	request := a.toDocsItemFields(reqXST.FieldList, structList, "")
 	response := a.toDocsItemFields(respXST.FieldList, structList, "")
 

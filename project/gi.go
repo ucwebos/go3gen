@@ -21,8 +21,12 @@ func (a *App) GI() {
 
 func (a *App) _gi(iParser *parser.IParser) {
 	gdi := tpls.GI{
-		Pkg:  iParser.Package,
-		List: make([]tpls.GItem, 0),
+		Pkg:         iParser.Package,
+		ProjectName: cfg.C.Project,
+		List:        make([]tpls.GItem, 0),
+	}
+	if tool_file.Exists(path.Join(iParser.Pwd, "initonce.go")) {
+		gdi.InitOnce = true
 	}
 	for _, xst := range iParser.GetStructList() {
 		if xst.GI {

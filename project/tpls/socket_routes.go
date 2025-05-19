@@ -62,9 +62,9 @@ type {{$.SocketTypeUF}}{{$x.GroupUFirst}} struct {
 				"route": "{{$.SocketType}}.{{$it.URI}}",
 				"ret":   prometheus.RetLabel(err),
 			}, st)
-			//_resp, _ := tools.JSON.MarshalToString(resp)
-			//_req,_ := tools.JSON.MarshalToString(req)
-			//log.With().TraceID(ctx).Int("uid",int(_common.UID)).String("uri", "{{$it.URI}}").String("req", _req).String("resp", _resp).Info("ioReply")
+			_resp, _ := tools.JSON.MarshalToString(resp)
+			_req,_ := tools.JSON.MarshalToString(req)
+			log.With().TraceID(ctx).Int("uid",int(_common.UID)).String("uri", "{{$it.URI}}").String("req", _req).String("resp", _resp).Info("ioReply")
 		}()
 		resp, err = handler.{{$it.FunName}}(ctx, req)
 		if err != nil {

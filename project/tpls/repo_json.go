@@ -43,7 +43,7 @@ func (r *{{.EntityName}}Repo) Filename() string {
 func (r *{{.EntityName}}Repo) LoadCache() {
 	r.mux.Lock()
 	defer r.mux.Unlock()
-	buf, err := os.ReadFile(path.Join(config.CCfg.ExcelPath, r.Table))
+	buf, err := os.ReadFile(path.Join(config.CCfg.BCfgPath, r.Table))
 	list := entity.{{.EntityName}}List{}
 	err = tools.JSONFuzzy.Unmarshal(buf, &list)
 	if err != nil {

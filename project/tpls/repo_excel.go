@@ -41,7 +41,7 @@ func (r *{{.EntityName}}Repo) Filename() string {
 func (r *{{.EntityName}}Repo) LoadCache() {
 	r.mux.Lock()
 	defer r.mux.Unlock()
-	data, err := tool_excel.ExcelSheetData(path.Join(config.CCfg.ExcelPath, r.Table), "")
+	data, err := tool_excel.ExcelSheetData(path.Join(config.CCfg.BCfgPath, r.Table), "")
 	if err != nil {
 		panic(err)
 	}
